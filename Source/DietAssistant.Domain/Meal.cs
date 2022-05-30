@@ -10,6 +10,10 @@ namespace DietAssistant.Domain
 
         public DateTime EatenOn { get; set; }
 
+        public User User { get; set; }
+
+        public Int32 UserId { get; set; }
+
         public ICollection<FoodServing> FoodServings { get; set; }
     }
 }

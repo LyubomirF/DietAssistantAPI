@@ -10,7 +10,7 @@ namespace DietAssistant.Domain
 
         public String Unit { get; set; }
 
-        public String Amount { get; set; }
+        public Double Amount { get; set; }
 
         public ICollection<Nutrient> Nutrients { get; set; }
     }

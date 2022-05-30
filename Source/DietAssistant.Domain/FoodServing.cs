@@ -8,10 +8,14 @@ namespace DietAssistant.Domain
 
         public Food Food { get; set; }
 
-        public Int32 ServingSizeId { get; set; }
+        public Meal Meal { get; set; }
 
-        public ServingSize ServingSize { get; set; }
+        public Int32 MealId { get; set; }
 
-        public Double NumberOfServings { get; set; }
+        public Double ServingSizeAmount { get; set; }
+
+        public String ServingSizeUnit { get; set; }
+
+        public Int32 NumberOfServings { get; set; }
     }
 }

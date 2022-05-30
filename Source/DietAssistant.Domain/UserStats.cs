@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿#pragma warning disable CS8618
 
 namespace DietAssistant.Domain
 {
@@ -16,16 +12,10 @@ namespace DietAssistant.Domain
 
         public Double Height { get; set; }
 
-        public Int32 HeightMetricId { get; set; }
-
-        public Metric HeightMetric { get; set; }
-
         public Double Weight { get; set; }
 
-        public Int32 WeightMetricId { get; set; }
+        public String MetricSystem { get; set; }
 
-        public Metric WeigthMetric { get; set; }
-
-        public Double BodyFatPercentage { get; set; }
+        public Double? BodyFatPercentage { get; set; }
     }
 }

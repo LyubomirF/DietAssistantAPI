@@ -11,5 +11,9 @@ namespace DietAssistant.Domain
         public String Unit { get; set; }
 
         public Double Amount { get; set; }
+
+        public Food Food { get; set; }
+
+        public Int32 FoodId { get; set; }
     }
 }

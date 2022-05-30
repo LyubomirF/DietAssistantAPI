@@ -9,5 +9,9 @@ namespace DietAssistant.Domain
         public String Name { get; set; }
 
         public UserStats UserStats { get; set; }
+
+        public ICollection<ProgressLog> ProgressLogs { get; set; }
+
+        public ICollection<Meal> Meals { get; set; }
     }
 }
