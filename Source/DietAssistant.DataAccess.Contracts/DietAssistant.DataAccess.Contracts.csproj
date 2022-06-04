@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DietAssistant.Domain\DietAssistant.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

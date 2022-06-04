@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DietAssistant.Business.Contracts\DietAssistant.Business.Contracts.csproj" />
+    <ProjectReference Include="..\DietAssistant.DataAccess.Contracts\DietAssistant.DataAccess.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>
