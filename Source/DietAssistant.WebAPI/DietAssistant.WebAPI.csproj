@@ -18,10 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\DietAssistant.Business\DietAssistant.Business.csproj" />
     <ProjectReference Include="..\DietAssistant.DataAccess\DietAssistant.DataAccess.csproj" />
     <ProjectReference Include="..\DietAssistant.Domain\DietAssistant.Domain.csproj" />
   </ItemGroup>
