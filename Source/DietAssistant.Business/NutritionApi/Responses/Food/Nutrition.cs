@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DietAssistant.Business.NutritionApi.Responses.Food
+﻿namespace DietAssistant.Business.NutritionApi.Responses.Food
 {
     public class Nutrition
     {
