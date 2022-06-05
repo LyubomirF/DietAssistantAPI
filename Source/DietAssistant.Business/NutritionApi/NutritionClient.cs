@@ -4,11 +4,13 @@ using Microsoft.Extensions.Options;
 using RestSharp;
 using Newtonsoft.Json;
 using DietAssistant.Common;
+using DietAssistant.Business.NutritionApi.Responses.Food;
 
 namespace DietAssistant.Business
 {
     public class NutritionClient
     {
+
         private readonly RestClient _restClient;
         private readonly NutritionApiConfiguration _apiConfiguration;
 
@@ -20,7 +22,7 @@ namespace DietAssistant.Business
                 .AddDefaultHeader("X-RapidAPI-Key", _apiConfiguration.Key);
         }
 
-        public async Task<Result<SearchResponse>> SearchFoods(SearchFoodRequest requestModel)
+        public async Task<Result<SearchResponse>> SearchFoodsAsync(SearchFoodRequest requestModel)
         {
             var request = GetSearchFoodsRestRequest(requestModel);
 
@@ -35,6 +37,24 @@ namespace DietAssistant.Business
                 return Result.Create<SearchResponse>(EvaluationTypes.Failed, "Unable to fetch results.");
 
             return Result.Create(data);
+        }
+
+        public async Task<Result<FoodResponse>> GetFoodByIdAsync(Int32 id)
+        {
+            var request = new RestRequest(NutritionApiRoutes.GetFood(id));
+
+            var response = await _restClient.GetAsync(request);
+
+            if (response == null)
+                return Result.Create<FoodResponse>(EvaluationTypes.Failed, "Unable to fetch results.");
+
+            var data = JsonConvert.DeserializeObject<FoodResponse>(response.Content);
+
+            if (data == null)
+                return Result.Create<FoodResponse>(EvaluationTypes.Failed, "Unable to fetch results.");
+
+            return Result.Create(data);
+
         }
 
         private RestRequest GetSearchFoodsRestRequest(SearchFoodRequest request)

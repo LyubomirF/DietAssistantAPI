@@ -18,4 +18,8 @@
     <ProjectReference Include="..\DietAssistant.DataAccess.Contracts\DietAssistant.DataAccess.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="NutritionApi\Helpers\" />
+  </ItemGroup>
+
 </Project>

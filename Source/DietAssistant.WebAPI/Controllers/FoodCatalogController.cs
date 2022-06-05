@@ -15,10 +15,18 @@ namespace DietAssistant.WebAPI.Controllers
             _nutritionClient = foodCatalog;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetSnickers([FromQuery] SearchFoodRequest request)
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchFoodsAsync([FromQuery] SearchFoodRequest request)
         {
-            var response = await _nutritionClient.SearchFoods(request);
+            var response = await _nutritionClient.SearchFoodsAsync(request);
+
+            return Ok(response);
+        }
+        // 758951
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetFoodByIdAsync([FromRoute] Int32 id)
+        {
+            var response = await _nutritionClient.GetFoodByIdAsync(id);
 
             return Ok(response);
         }
