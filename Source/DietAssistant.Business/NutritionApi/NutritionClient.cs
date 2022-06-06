@@ -10,7 +10,6 @@ namespace DietAssistant.Business
 {
     public class NutritionClient
     {
-
         private readonly RestClient _restClient;
         private readonly NutritionApiConfiguration _apiConfiguration;
 
@@ -29,12 +28,12 @@ namespace DietAssistant.Business
             var response = await _restClient.GetAsync(request);
 
             if (response == null)
-                return Result.Create<SearchResponse>(EvaluationTypes.Failed, "Unable to fetch results.");
+                return Result.CreateWithError<SearchResponse>(EvaluationTypes.Failed, "Unable to fetch results.");
 
             var data = JsonConvert.DeserializeObject<SearchResponse>(response.Content);
 
             if (data == null)
-                return Result.Create<SearchResponse>(EvaluationTypes.Failed, "Unable to fetch results.");
+                return Result.CreateWithError<SearchResponse>(EvaluationTypes.Failed, "Unable to fetch results.");
 
             return Result.Create(data);
         }
@@ -46,15 +45,14 @@ namespace DietAssistant.Business
             var response = await _restClient.GetAsync(request);
 
             if (response == null)
-                return Result.Create<FoodResponse>(EvaluationTypes.Failed, "Unable to fetch results.");
+                return Result.CreateWithError<FoodResponse>(EvaluationTypes.Failed, "Unable to fetch results.");
 
             var data = JsonConvert.DeserializeObject<FoodResponse>(response.Content);
 
             if (data == null)
-                return Result.Create<FoodResponse>(EvaluationTypes.Failed, "Unable to fetch results.");
+                return Result.CreateWithError<FoodResponse>(EvaluationTypes.Failed, "Unable to fetch results.");
 
             return Result.Create(data);
-
         }
 
         private RestRequest GetSearchFoodsRestRequest(SearchFoodRequest request)

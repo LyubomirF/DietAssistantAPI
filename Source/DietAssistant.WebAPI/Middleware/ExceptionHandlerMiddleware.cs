@@ -30,7 +30,7 @@ namespace DietAssistant.WebAPI.Middleware
             var statusCode = (int)HttpStatusCode.InternalServerError;
 
             var result = JsonConvert.SerializeObject(
-                Result.Create<object>(EvaluationTypes.Failed, exception.Message));
+                Result.CreateWithError<object>(EvaluationTypes.Failed, exception.Message));
 
             context.Response.ContentType = "application/json";
 
