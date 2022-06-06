@@ -60,6 +60,7 @@ namespace DietAssistant.Business
         private RestRequest GetSearchFoodsRestRequest(SearchFoodRequest request)
         {
             var restRequest = new RestRequest(NutritionApiRoutes.SearchFoods);
+
             restRequest
                 .AddQueryParameter("offset", request.Page)
                 .AddQueryParameter("number", request.PageSize)

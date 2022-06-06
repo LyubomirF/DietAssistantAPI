@@ -1,5 +1,6 @@
 ﻿using DietAssistant.Business;
 using DietAssistant.Business.NutritionApi.Requests;
+using DietAssistant.WebAPI.Extentions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DietAssistant.WebAPI.Controllers
@@ -17,18 +18,11 @@ namespace DietAssistant.WebAPI.Controllers
 
         [HttpGet("search")]
         public async Task<IActionResult> SearchFoodsAsync([FromQuery] SearchFoodRequest request)
-        {
-            var response = await _nutritionClient.SearchFoodsAsync(request);
+            => await _nutritionClient.SearchFoodsAsync(request).ToActionResult(this);
 
-            return Ok(response);
-        }
         // 758951
         [HttpGet("{id}")]
         public async Task<IActionResult> GetFoodByIdAsync([FromRoute] Int32 id)
-        {
-            var response = await _nutritionClient.GetFoodByIdAsync(id);
-
-            return Ok(response);
-        }
+            => await _nutritionClient.GetFoodByIdAsync(id).ToActionResult(this);
     }
 }
