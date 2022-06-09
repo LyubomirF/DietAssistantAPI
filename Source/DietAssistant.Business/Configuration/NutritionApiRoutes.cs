@@ -1,4 +1,4 @@
-﻿namespace DietAssistant.Business
+﻿namespace DietAssistant.Business.Configuration
 {
     public static class NutritionApiRoutes
     {
@@ -6,6 +6,6 @@
 
         public const string SearchFoods = "food/products/search";
 
-        public static string GetFood(Int32 id) => $"food/products/{id}";
+        public static string GetFood(int id) => $"food/products/{id}";
     }
 }
