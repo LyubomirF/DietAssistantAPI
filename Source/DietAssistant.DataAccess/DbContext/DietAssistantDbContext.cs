@@ -19,10 +19,6 @@ namespace DietAssistant.DataAccess
         public DbSet<ProgressLog> ProgressLogs { get; set; }
 
         public DbSet<Meal> Meals { get; set; }
-        
-        public DbSet<Food> Foods { get; set; }
-
-        public DbSet<Nutrient> Nutrients { get; set; }
 
         public DbSet<FoodServing> FoodServings { get; set; }
 
@@ -68,22 +64,6 @@ namespace DietAssistant.DataAccess
                 options
                     .HasMany(x => x.FoodServings)
                     .WithOne(x => x.Meal);
-            });
-
-            builder.Entity<Food>(options => 
-            {
-                options.HasKey(x => x.FoodId);
-
-                options.HasMany(x => x.Nutrients).WithOne(x => x.Food);
-            });
-
-            builder.Entity<Nutrient>(options =>
-            {
-                options.HasKey(x => x.NutrientId);
-
-                options
-                    .HasOne(x => x.Food)
-                    .WithMany(x => x.Nutrients);
             });
         }
     }
