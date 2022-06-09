@@ -1,5 +1,9 @@
 using DietAssistant.Business;
+using DietAssistant.Business.Configuration;
+using DietAssistant.Business.Contracts;
 using DietAssistant.DataAccess;
+using DietAssistant.DataAccess.Contracts;
+using DietAssistant.DataAccess.Repositories;
 using DietAssistant.WebAPI.Extentions;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,7 +20,8 @@ services.AddDbContext<DietAssistantDbContext>(options =>
 services.Configure<NutritionApiConfiguration>(
     configuration.GetSection(nameof(NutritionApiConfiguration)));
 
-services.AddTransient<NutritionClient>();
+services.AddTransient<IFoodCatalogService, FoodCatalogService>();
+services.AddTransient<IMealRepository, MealRepository>();
 
 services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

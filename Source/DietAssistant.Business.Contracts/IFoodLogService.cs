@@ -1,4 +1,4 @@
-﻿using DietAssistant.Business.Contracts.Models.Requests;
+﻿using DietAssistant.Business.Contracts.Models.FoodLog.Requests;
 
 namespace DietAssistant.Business.Contracts
 {

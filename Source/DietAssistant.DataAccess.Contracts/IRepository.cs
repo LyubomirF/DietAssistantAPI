@@ -5,6 +5,6 @@
     {
         Task<TEntity> GetByIdAsync(Int32 id);
 
-        Task SaveAsync(TEntity entity);
+        Task SaveEntityAsync(TEntity entity);
     }
 }

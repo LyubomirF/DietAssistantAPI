@@ -1,6 +1,6 @@
 ﻿namespace DietAssistant.DataAccess.Repositories
 {
-    public class Repository<TEntity>
+    public abstract class Repository<TEntity>
         where TEntity : class
     {
         protected readonly DietAssistantDbContext _dbContext;

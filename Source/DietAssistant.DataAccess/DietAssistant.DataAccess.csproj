@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DietAssistant.DataAccess.Contracts\DietAssistant.DataAccess.Contracts.csproj" />
     <ProjectReference Include="..\DietAssistant.Domain\DietAssistant.Domain.csproj" />
   </ItemGroup>
 
