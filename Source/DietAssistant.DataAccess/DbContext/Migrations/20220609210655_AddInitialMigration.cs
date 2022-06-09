@@ -10,21 +10,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Foods",
-                columns: table => new
-                {
-                    FoodId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Unit = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Amount = table.Column<double>(type: "float", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Foods", x => x.FoodId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -35,28 +20,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.UserId);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Nutrients",
-                columns: table => new
-                {
-                    NutrientId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Unit = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Amount = table.Column<double>(type: "float", nullable: false),
-                    FoodId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Nutrients", x => x.NutrientId);
-                    table.ForeignKey(
-                        name: "FK_Nutrients_Foods_FoodId",
-                        column: x => x.FoodId,
-                        principalTable: "Foods",
-                        principalColumn: "FoodId",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -132,19 +95,13 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FoodId = table.Column<int>(type: "int", nullable: false),
                     MealId = table.Column<int>(type: "int", nullable: false),
-                    ServingSizeAmount = table.Column<double>(type: "float", nullable: false),
-                    ServingSizeUnit = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    NumberOfServings = table.Column<int>(type: "int", nullable: false)
+                    ServingUnit = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ServingSize = table.Column<double>(type: "float", nullable: false),
+                    NumberOfServings = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_FoodServings", x => x.FoodServingId);
-                    table.ForeignKey(
-                        name: "FK_FoodServings_Foods_FoodId",
-                        column: x => x.FoodId,
-                        principalTable: "Foods",
-                        principalColumn: "FoodId",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_FoodServings_Meals_MealId",
                         column: x => x.MealId,
@@ -152,11 +109,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                         principalColumn: "MealId",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_FoodServings_FoodId",
-                table: "FoodServings",
-                column: "FoodId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_FoodServings_MealId",
@@ -167,11 +119,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                 name: "IX_Meals_UserId",
                 table: "Meals",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Nutrients_FoodId",
-                table: "Nutrients",
-                column: "FoodId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProgressLogs_UserId",
@@ -191,9 +138,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                 name: "FoodServings");
 
             migrationBuilder.DropTable(
-                name: "Nutrients");
-
-            migrationBuilder.DropTable(
                 name: "ProgressLogs");
 
             migrationBuilder.DropTable(
@@ -201,9 +145,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
 
             migrationBuilder.DropTable(
                 name: "Meals");
-
-            migrationBuilder.DropTable(
-                name: "Foods");
 
             migrationBuilder.DropTable(
                 name: "Users");

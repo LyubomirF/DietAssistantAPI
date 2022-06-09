@@ -20,6 +20,7 @@ services.AddDbContext<DietAssistantDbContext>(options =>
 services.Configure<NutritionApiConfiguration>(
     configuration.GetSection(nameof(NutritionApiConfiguration)));
 
+services.AddTransient<IFoodLogService, FoodLogService>();
 services.AddTransient<IFoodCatalogService, FoodCatalogService>();
 services.AddTransient<IMealRepository, MealRepository>();
 

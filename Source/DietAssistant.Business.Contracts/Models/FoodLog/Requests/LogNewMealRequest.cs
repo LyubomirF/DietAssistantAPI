@@ -6,6 +6,6 @@ namespace DietAssistant.Business.Contracts.Models.FoodLog.Requests
     {
         public DateTime Date { get; set; }
 
-        public List<FoodServingDto> Serving { get; set; }
+        public List<FoodServingDto> FoodServings { get; set; }
     }
 }

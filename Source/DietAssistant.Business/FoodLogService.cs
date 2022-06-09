@@ -8,7 +8,7 @@ using DietAssistant.Domain;
 
 namespace DietAssistant.Business
 {
-    public class FoodLogService
+    public class FoodLogService : IFoodLogService
     {
         private readonly IFoodCatalogService _foodCatalogService;
         private readonly IMealRepository _mealRepository;
@@ -21,17 +21,17 @@ namespace DietAssistant.Business
             _mealRepository = mealRepository;
         }
 
-        public async Task<Result<NewMealLogResponse>> LogNewMeal(LogNewMealRequest request)
+        public async Task<Result<NewMealLogResponse>> LogNewMealAsync(LogNewMealRequest request)
         {
             var food = (await _foodCatalogService
-                .GetFoodsAsync(request.Serving.Select(x => x.FoodId))).Data;
+                .GetFoodsAsync(request.FoodServings.Select(x => x.FoodId))).Data;
 
             if (food is null)
                 return Result
                     .CreateWithError<NewMealLogResponse>(EvaluationTypes.NotFound, "Food with id not found.");
 
             var lastMeal = await _mealRepository.GetLastMealAsync(request.Date);
-            var foodServings = request.Serving
+            var foodServings = request.FoodServings
                     .Select(x => new FoodServing
                     {
                         FoodId = x.FoodId,

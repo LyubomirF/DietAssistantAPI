@@ -22,30 +22,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("DietAssistant.Domain.Food", b =>
-                {
-                    b.Property<int>("FoodId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FoodId"), 1L, 1);
-
-                    b.Property<double>("Amount")
-                        .HasColumnType("float");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("FoodId");
-
-                    b.ToTable("Foods");
-                });
-
             modelBuilder.Entity("DietAssistant.Domain.FoodServing", b =>
                 {
                     b.Property<int>("FoodServingId")
@@ -60,19 +36,17 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                     b.Property<int>("MealId")
                         .HasColumnType("int");
 
-                    b.Property<int>("NumberOfServings")
-                        .HasColumnType("int");
-
-                    b.Property<double>("ServingSizeAmount")
+                    b.Property<double>("NumberOfServings")
                         .HasColumnType("float");
 
-                    b.Property<string>("ServingSizeUnit")
+                    b.Property<double>("ServingSize")
+                        .HasColumnType("float");
+
+                    b.Property<string>("ServingUnit")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("FoodServingId");
-
-                    b.HasIndex("FoodId");
 
                     b.HasIndex("MealId");
 
@@ -101,35 +75,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Meals");
-                });
-
-            modelBuilder.Entity("DietAssistant.Domain.Nutrient", b =>
-                {
-                    b.Property<int>("NutrientId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NutrientId"), 1L, 1);
-
-                    b.Property<double>("Amount")
-                        .HasColumnType("float");
-
-                    b.Property<int>("FoodId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("NutrientId");
-
-                    b.HasIndex("FoodId");
-
-                    b.ToTable("Nutrients");
                 });
 
             modelBuilder.Entity("DietAssistant.Domain.ProgressLog", b =>
@@ -207,19 +152,11 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
 
             modelBuilder.Entity("DietAssistant.Domain.FoodServing", b =>
                 {
-                    b.HasOne("DietAssistant.Domain.Food", "Food")
-                        .WithMany()
-                        .HasForeignKey("FoodId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("DietAssistant.Domain.Meal", "Meal")
                         .WithMany("FoodServings")
                         .HasForeignKey("MealId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Food");
 
                     b.Navigation("Meal");
                 });
@@ -233,17 +170,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DietAssistant.Domain.Nutrient", b =>
-                {
-                    b.HasOne("DietAssistant.Domain.Food", "Food")
-                        .WithMany("Nutrients")
-                        .HasForeignKey("FoodId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Food");
                 });
 
             modelBuilder.Entity("DietAssistant.Domain.ProgressLog", b =>
@@ -266,11 +192,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("DietAssistant.Domain.Food", b =>
-                {
-                    b.Navigation("Nutrients");
                 });
 
             modelBuilder.Entity("DietAssistant.Domain.Meal", b =>
