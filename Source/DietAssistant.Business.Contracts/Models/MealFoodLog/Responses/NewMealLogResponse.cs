@@ -1,6 +1,6 @@
 ﻿namespace DietAssistant.Business.Contracts.Models.MealFoodLog.Responses
 {
-    public class NewMealLogResponse
+    public class MealLogResponse
     {
         public DateTime EatenOn { get; set; }
 

@@ -21,16 +21,71 @@ namespace DietAssistant.Business
             _mealRepository = mealRepository;
         }
 
-        public async Task<Result<NewMealLogResponse>> LogNewMealAsync(LogMealRequest request)
+        //meals
+        public async Task<Result<MealLogResponse>> GetMealById(Int32 id)
         {
-            var food = (await _foodCatalogService
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(id);
+
+            if (meal is null)
+                return Result
+                    .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, "Meal was not found.");
+
+            var foodIds = meal.FoodServings.Select(x => x.FoodId);
+            var foods = (await _foodCatalogService.GetFoodsAsync(foodIds)).Data;
+
+            if(foods is null)
+                return Result
+                    .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, "Not all foods were found found.");
+
+            return Result.Create(GetMealLogResponse(meal.FoodServings, foods, meal.Order, meal.EatenOn));
+        }
+
+        public async Task<Result<MealLogResponse>> UpdateMealLogAsync(Int32 id, UpdateMealLogRequest request)
+        {
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(id);
+
+            if (meal is null)
+                return Result
+                    .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, "Meal was not found.");
+
+            var foodIds = request.FoodServings.Select(x => x.FoodId);
+            var foods = (await _foodCatalogService.GetFoodsAsync(foodIds)).Data;
+
+            if (foods is null)
+                return Result
+                    .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, "Not all foods were found found.");
+
+            meal.FoodServings.Clear();
+
+            var foodServings = request.FoodServings
+                    .Select(x => new FoodServing
+                    {
+                        FoodId = x.FoodId,
+                        ServingSize = x.Size,
+                        ServingUnit = x.Unit,
+                        NumberOfServings = x.Number
+                    }).ToList();
+
+            foreach (var foodServing in foodServings)
+                meal.FoodServings.Add(foodServing);
+
+            await _mealRepository.SaveEntityAsync(meal);
+
+            return Result.Create(GetMealLogResponse(meal.FoodServings, foods, meal.Order, meal.EatenOn));
+        }
+
+
+        public async Task<Result<MealLogResponse>> LogMealAsync(LogMealRequest request)
+        {
+            var foods = (await _foodCatalogService
                 .GetFoodsAsync(request.FoodServings.Select(x => x.FoodId))).Data;
 
-            if (food is null)
+            if (foods is null)
                 return Result
-                    .CreateWithError<NewMealLogResponse>(EvaluationTypes.NotFound, "Food with id not found.");
+                    .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, "Food with id not found.");
 
             var lastMeal = await _mealRepository.GetLastMealAsync(request.Date);
+
             var foodServings = request.FoodServings
                     .Select(x => new FoodServing
                     {
@@ -57,14 +112,11 @@ namespace DietAssistant.Business
 
             await _mealRepository.SaveEntityAsync(newMeal);
 
-            return Result.Create(GetNewMealLogResponse(
-                foodServings,
-                food.ToList(),
-                newMeal.Order,
-                request.Date));
+            return Result.Create(GetMealLogResponse(foodServings, foods, newMeal.Order, request.Date));
         }
 
-        public async Task<Result<FoodLogResponse>> LogFoodAsync(LogFoodRequest request)
+        //foods
+        public async Task<Result<FoodLogResponse>> LogFoodAsync(Int32 mealId, LogFoodRequest request)
         {
             var food = (await _foodCatalogService.GetFoodByIdAsync(request.FoodId)).Data;
 
@@ -80,7 +132,7 @@ namespace DietAssistant.Business
                 ServingUnit = request.ServingSizeUnit
             };
 
-            var meal = await _mealRepository.GetByIdAsync(request.MealId);
+            var meal = await _mealRepository.GetByIdAsync(mealId);
 
             if (meal is null)
                 return Result
@@ -113,13 +165,13 @@ namespace DietAssistant.Business
                 }
             };
         }
-        private NewMealLogResponse GetNewMealLogResponse(
+        private MealLogResponse GetMealLogResponse(
             IEnumerable<FoodServing> foodServings,
-            List<FoodDetails> foods,
+            IReadOnlyCollection<FoodDetails> foods,
             Int32 mealNumber,
             DateTime date)
         {
-            return new NewMealLogResponse
+            return new MealLogResponse
             {
                 EatenOn = date,
                 MealNumber = mealNumber,
@@ -133,7 +185,7 @@ namespace DietAssistant.Business
                 {
                     FoodId = x.Food.FoodId,
                     FoodName = x.Food.FoodName,
-                    Nutrition = new Contracts.Models.MealFoodLog.Responses.LoggedNutrition
+                    Nutrition = new LoggedNutrition
                     {
                         Carbs = CalculateNutrientTotal("Carbohydrates", x.Food, x.FoodServing),
                         Fat = CalculateNutrientTotal("Fat", x.Food, x.FoodServing),

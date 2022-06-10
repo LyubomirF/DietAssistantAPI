@@ -2,10 +2,8 @@
 
 namespace DietAssistant.Business.Contracts.Models.MealFoodLog.Requests
 {
-    public class LogMealRequest
+    public class UpdateMealLogRequest
     {
-        public DateTime Date { get; set; }
-
-        public List<FoodServingDto > FoodServings { get; set; }
+        public List<FoodServingDto> FoodServings { get; set; }
     }
 }

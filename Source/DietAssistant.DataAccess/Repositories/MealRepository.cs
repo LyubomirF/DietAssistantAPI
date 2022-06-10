@@ -18,6 +18,11 @@ namespace DietAssistant.DataAccess.Repositories
                 .OrderBy(x => x.Order)
                 .LastOrDefaultAsync();
 
+        public async Task<Meal> GetMealByIdWithFoodServings(int id)
+            => await _dbContext.Meals
+                .Include(x => x.FoodServings)
+                .SingleOrDefaultAsync(x => x.MealId == id);
+
         public async Task<IEnumerable<Meal>> GetMealsForDayAsync(DateTime dateTime)
             => await _dbContext.Meals
                 .Include(x => x.FoodServings)
