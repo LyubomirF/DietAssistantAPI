@@ -1,4 +1,4 @@
-﻿namespace DietAssistant.Business.Contracts.Models.FoodLog.Responses
+﻿namespace DietAssistant.Business.Contracts.Models.MealFoodLog.Responses
 {
     public class LoggedNutrition
     {

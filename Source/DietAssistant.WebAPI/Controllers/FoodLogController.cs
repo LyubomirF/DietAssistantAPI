@@ -1,5 +1,5 @@
 ﻿using DietAssistant.Business.Contracts;
-using DietAssistant.Business.Contracts.Models.FoodLog.Requests;
+using DietAssistant.Business.Contracts.Models.MealFoodLog.Requests;
 using DietAssistant.WebAPI.Extentions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,19 +10,19 @@ namespace DietAssistant.WebAPI.Controllers
     [ApiController]
     public class FoodLogController : ControllerBase
     {
-        private readonly IFoodLogService _foodLogService;
+        private readonly IMealLogService _meallogService;
 
-        public FoodLogController(IFoodLogService foodLogService)
+        public FoodLogController(IMealLogService foodLogService)
         {
-            _foodLogService = foodLogService;
+            _meallogService = foodLogService;
         }
 
         [HttpPost("meal")]
         public async Task<IActionResult> LogMealAsync([FromBody] LogMealRequest request)
-            => await _foodLogService.LogNewMealAsync(request).ToActionResult(this);
+            => await _meallogService.LogNewMealAsync(request).ToActionResult(this);
 
         [HttpPost("food")]
         public async Task<IActionResult> LogFoodAsync(LogFoodRequest request)
-            => await _foodLogService.LogFoodAsync(request).ToActionResult(this);
+            => await _meallogService.LogFoodAsync(request).ToActionResult(this);
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DietAssistant.Business.Contracts.Models.FoodLog.Requests
+namespace DietAssistant.Business.Contracts.Models.MealFoodLog.Requests
 {
     public class LogFoodRequest
     {

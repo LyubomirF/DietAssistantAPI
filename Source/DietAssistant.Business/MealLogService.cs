@@ -1,19 +1,19 @@
 ﻿using DietAssistant.Business.Contracts;
 using DietAssistant.Business.Contracts.Models.FoodCatalog.Responses;
-using DietAssistant.Business.Contracts.Models.FoodLog.Requests;
-using DietAssistant.Business.Contracts.Models.FoodLog.Responses;
+using DietAssistant.Business.Contracts.Models.MealFoodLog.Requests;
+using DietAssistant.Business.Contracts.Models.MealFoodLog.Responses;
 using DietAssistant.Common;
 using DietAssistant.DataAccess.Contracts;
 using DietAssistant.Domain;
 
 namespace DietAssistant.Business
 {
-    public class FoodLogService : IFoodLogService
+    public class MealLogService : IMealLogService
     {
         private readonly IFoodCatalogService _foodCatalogService;
         private readonly IMealRepository _mealRepository;
 
-        public FoodLogService(
+        public MealLogService(
             IFoodCatalogService foodCatalogService,
             IMealRepository mealRepository)
         {
@@ -133,7 +133,7 @@ namespace DietAssistant.Business
                 {
                     FoodId = x.Food.FoodId,
                     FoodName = x.Food.FoodName,
-                    Nutrition = new Contracts.Models.FoodLog.Responses.LoggedNutrition
+                    Nutrition = new Contracts.Models.MealFoodLog.Responses.LoggedNutrition
                     {
                         Carbs = CalculateNutrientTotal("Carbohydrates", x.Food, x.FoodServing),
                         Fat = CalculateNutrientTotal("Fat", x.Food, x.FoodServing),

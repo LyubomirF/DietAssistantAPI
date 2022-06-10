@@ -1,10 +1,10 @@
-﻿using DietAssistant.Business.Contracts.Models.FoodLog.Requests;
-using DietAssistant.Business.Contracts.Models.FoodLog.Responses;
+﻿using DietAssistant.Business.Contracts.Models.MealFoodLog.Requests;
+using DietAssistant.Business.Contracts.Models.MealFoodLog.Responses;
 using DietAssistant.Common;
 
 namespace DietAssistant.Business.Contracts
 {
-    public interface IFoodLogService
+    public interface IMealLogService
     {
         Task<Result<NewMealLogResponse>> LogNewMealAsync(LogMealRequest request);
 
