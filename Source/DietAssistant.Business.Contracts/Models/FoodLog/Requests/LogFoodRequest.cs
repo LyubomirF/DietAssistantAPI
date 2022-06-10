@@ -2,7 +2,7 @@
 
 namespace DietAssistant.Business.Contracts.Models.FoodLog.Requests
 {
-    public class LogRequest
+    public class LogFoodRequest
     {
         [Required]
         public Int32 FoodId { get; set; }

@@ -2,7 +2,7 @@
 
 namespace DietAssistant.Business.Contracts.Models.FoodLog.Requests
 {
-    public class LogNewMealRequest
+    public class LogMealRequest
     {
         public DateTime Date { get; set; }
 

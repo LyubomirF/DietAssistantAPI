@@ -21,7 +21,7 @@ namespace DietAssistant.Business
             _mealRepository = mealRepository;
         }
 
-        public async Task<Result<NewMealLogResponse>> LogNewMealAsync(LogNewMealRequest request)
+        public async Task<Result<NewMealLogResponse>> LogNewMealAsync(LogMealRequest request)
         {
             var food = (await _foodCatalogService
                 .GetFoodsAsync(request.FoodServings.Select(x => x.FoodId))).Data;
@@ -64,7 +64,7 @@ namespace DietAssistant.Business
                 request.Date));
         }
 
-        public async Task<Result<FoodLogResponse>> LogFoodAsync(LogRequest request)
+        public async Task<Result<FoodLogResponse>> LogFoodAsync(LogFoodRequest request)
         {
             var food = (await _foodCatalogService.GetFoodByIdAsync(request.FoodId)).Data;
 

@@ -6,8 +6,8 @@ namespace DietAssistant.Business.Contracts
 {
     public interface IFoodLogService
     {
-        Task<Result<NewMealLogResponse>> LogNewMealAsync(LogNewMealRequest request);
+        Task<Result<NewMealLogResponse>> LogNewMealAsync(LogMealRequest request);
 
-        Task<Result<FoodLogResponse>> LogFoodAsync(LogRequest request);
+        Task<Result<FoodLogResponse>> LogFoodAsync(LogFoodRequest request);
     }
 }
