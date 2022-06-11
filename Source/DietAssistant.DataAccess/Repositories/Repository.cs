@@ -18,10 +18,10 @@
             return entity;
         }
 
-        protected async Task Delete(TEntity entity)
+        protected async Task<Int32> DeleteAsync(TEntity entity)
         {
             _dbContext.Set<TEntity>().Remove(entity);
-            await _dbContext.SaveChangesAsync();
+            return await _dbContext.SaveChangesAsync();
         }
 
         public async Task SaveEntityAsync(TEntity entity)

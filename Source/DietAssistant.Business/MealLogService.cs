@@ -74,6 +74,19 @@ namespace DietAssistant.Business
             return Result.Create(GetMealLogResponse(meal.FoodServings, foods, meal.Order, meal.EatenOn));
         }
 
+        public async Task<Result<Int32>> DeleteMealAsync(Int32 id)
+        {
+            var meal = await _mealRepository.GetByIdAsync(id);
+
+            if (meal is null)
+                return Result.CreateWithError<Int32>(EvaluationTypes.NotFound, "Meal was not found.");
+
+            var result = await _mealRepository.DeleteMealAsync(meal);
+
+            return result <= 0
+                ? Result.CreateWithError<Int32>(EvaluationTypes.Failed, "Couldn't delete meal.")
+                : Result.Create(id);      
+        }
 
         public async Task<Result<MealLogResponse>> LogMealAsync(LogMealRequest request)
         {
@@ -166,6 +179,7 @@ namespace DietAssistant.Business
                 }
             };
         }
+
         private MealLogResponse GetMealLogResponse(
             IEnumerable<FoodServing> foodServings,
             IReadOnlyCollection<FoodDetails> foods,

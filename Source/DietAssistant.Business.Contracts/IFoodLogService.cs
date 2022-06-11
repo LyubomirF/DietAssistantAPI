@@ -12,6 +12,8 @@ namespace DietAssistant.Business.Contracts
 
         Task<Result<MealLogResponse>> UpdateMealLogAsync(Int32 id, UpdateMealLogRequest request);
 
+        Task<Result<Int32>> DeleteMealAsync(Int32 id);
+
         Task<Result<FoodLogResponse>> LogFoodAsync(Int32 mealdId, LogFoodRequest request);
     }
 }
