@@ -33,7 +33,7 @@ namespace DietAssistant.Business
             var foodIds = meal.FoodServings.Select(x => x.FoodId);
             var foods = (await _foodCatalogService.GetFoodsAsync(foodIds)).Data;
 
-            if(foods is null)
+            if (foods is null)
                 return Result
                     .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, "Not all foods were found.");
 
@@ -85,7 +85,7 @@ namespace DietAssistant.Business
 
             return result <= 0
                 ? Result.CreateWithError<Int32>(EvaluationTypes.Failed, "Couldn't delete meal.")
-                : Result.Create(id);      
+                : Result.Create(id);
         }
 
         public async Task<Result<MealLogResponse>> LogMealAsync(LogMealRequest request)
@@ -159,6 +159,34 @@ namespace DietAssistant.Business
             return Result.Create(GetFoodLogResponse(meal, food, foodServing));
         }
 
+        public async Task<Result<FoodLogResponse>> UpdateFoodLogAsync(
+            Int32 mealId,
+            Int32 foodServingId,
+            UpdateFoodLogRequest request)
+        {
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId);
+
+            if (meal is null)
+                return Result
+                    .CreateWithError<FoodLogResponse>(EvaluationTypes.NotFound, "Meal was not found.");
+
+            var foodServing = meal.FoodServings.SingleOrDefault(x => x.FoodServingId == foodServingId);
+
+            if (foodServing is null)
+                return Result
+                    .CreateWithError<FoodLogResponse>(EvaluationTypes.NotFound, "Food serving was not found.");
+
+            foodServing.ServingUnit = request.FoodServing.Unit;
+            foodServing.ServingSize = request.FoodServing.Size;
+            foodServing.NumberOfServings = request.FoodServing.Number;
+
+            await _mealRepository.SaveEntityAsync(meal);
+
+            var food = (await _foodCatalogService.GetFoodByIdAsync(foodServing.FoodId)).Data;
+
+            return Result.Create(GetFoodLogResponse(meal, food, foodServing));
+        }
+
         private FoodLogResponse GetFoodLogResponse(Meal meal, FoodDetails food, FoodServing foodServing)
         {
             return new FoodLogResponse
@@ -167,6 +195,7 @@ namespace DietAssistant.Business
                 MealOrder = meal.Order,
                 Food = new LoggedFood
                 {
+                    FoodServingId = foodServing.FoodServingId,
                     FoodId = food.FoodId,
                     FoodName = food.FoodName,
                     Nutrition = new LoggedNutrition
@@ -194,6 +223,7 @@ namespace DietAssistant.Business
                 })
                 .Select(x => new LoggedFood
                 {
+                    FoodServingId = x.FoodServing.FoodServingId,
                     FoodId = x.Food.FoodId,
                     FoodName = x.Food.FoodName,
                     Nutrition = new LoggedNutrition
@@ -234,7 +264,7 @@ namespace DietAssistant.Business
             var foodDefaultServing = food.ServingInformation.Size;
 
             var nutrientAmountPerServing = food.Nutrition.Nutrients.Single(x => x.Name == name).Amount;
-            
+
             var ratio = (servingSize * numberOfServings) / foodDefaultServing;
 
             return Math.Round(ratio * nutrientAmountPerServing, 2);
