@@ -20,7 +20,8 @@ namespace DietAssistant.WebAPI.Controllers
         public async Task<IActionResult> SearchFoodsAsync([FromQuery] SearchFoodRequest request)
             => await _foodCatalog.SearchFoodsAsync(request).ToActionResult(this);
 
-        // 758951
+        // 758951 - cucumber
+        // 186891 - chicken
         [HttpGet("{id}")]
         public async Task<IActionResult> GetFoodByIdAsync([FromRoute] Int32 id)
             => await _foodCatalog.GetFoodByIdAsync(id).ToActionResult(this);

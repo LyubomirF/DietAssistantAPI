@@ -35,7 +35,7 @@ namespace DietAssistant.Business
 
             if(foods is null)
                 return Result
-                    .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, "Not all foods were found found.");
+                    .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, "Not all foods were found.");
 
             return Result.Create(GetMealLogResponse(meal.FoodServings, foods, meal.Order, meal.EatenOn));
         }
@@ -96,6 +96,7 @@ namespace DietAssistant.Business
                     }).ToList();
 
             var newMeal = new Meal();
+            newMeal.UserId = 1;
 
             if (lastMeal is null)
             {
@@ -128,11 +129,11 @@ namespace DietAssistant.Business
             {
                 FoodId = request.FoodId,
                 NumberOfServings = request.NumberOfServings,
-                ServingSize = request.ServingSizeAmount,
-                ServingUnit = request.ServingSizeUnit
+                ServingSize = request.ServingSize,
+                ServingUnit = request.Unit
             };
 
-            var meal = await _mealRepository.GetByIdAsync(mealId);
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId);
 
             if (meal is null)
                 return Result
@@ -157,10 +158,10 @@ namespace DietAssistant.Business
                     FoodName = food.FoodName,
                     Nutrition = new LoggedNutrition
                     {
-                        Calories = CalculateNutrientTotal("Calories", food, foodServing),
-                        Carbs = CalculateNutrientTotal("Carbs", food, foodServing),
-                        Fat = CalculateNutrientTotal("Fat", food, foodServing),
-                        Protein = CalculateNutrientTotal("Protein", food, foodServing),
+                        Calories = CalculateNutrientTotalPerServing("Calories", food, foodServing),
+                        Carbs = CalculateNutrientTotalPerServing("Carbohydrates", food, foodServing),
+                        Fat = CalculateNutrientTotalPerServing("Fat", food, foodServing),
+                        Protein = CalculateNutrientTotalPerServing("Protein", food, foodServing),
                     }
                 }
             };
@@ -171,11 +172,7 @@ namespace DietAssistant.Business
             Int32 mealNumber,
             DateTime date)
         {
-            return new MealLogResponse
-            {
-                EatenOn = date,
-                MealNumber = mealNumber,
-                Foods = foodServings
+            var loggedFood = foodServings
                 .Select(fs => new
                 {
                     FoodServing = fs,
@@ -187,20 +184,47 @@ namespace DietAssistant.Business
                     FoodName = x.Food.FoodName,
                     Nutrition = new LoggedNutrition
                     {
-                        Carbs = CalculateNutrientTotal("Carbohydrates", x.Food, x.FoodServing),
-                        Fat = CalculateNutrientTotal("Fat", x.Food, x.FoodServing),
-                        Protein = CalculateNutrientTotal("Protein", x.Food, x.FoodServing),
-                        Calories = CalculateNutrientTotal("Calories", x.Food, x.FoodServing),
+                        Carbs = CalculateNutrientTotalPerServing("Carbohydrates", x.Food, x.FoodServing),
+                        Fat = CalculateNutrientTotalPerServing("Fat", x.Food, x.FoodServing),
+                        Protein = CalculateNutrientTotalPerServing("Protein", x.Food, x.FoodServing),
+                        Calories = CalculateNutrientTotalPerServing("Calories", x.Food, x.FoodServing),
                     }
                 })
-                .ToList(),
+                .ToList();
+
+            return new MealLogResponse
+            {
+                EatenOn = date,
+                MealNumber = mealNumber,
+                Foods = loggedFood,
+                TotalCalories = loggedFood
+                    .Select(x => x.Nutrition.Calories)
+                    .Aggregate((x, y) => x + y),
+                TotalCarbs = loggedFood
+                    .Select(x => x.Nutrition.Carbs)
+                    .Aggregate((x, y) => x + y),
+                TotalFat = loggedFood
+                    .Select(x => x.Nutrition.Fat)
+                    .Aggregate((x, y) => x + y),
+                TotalProtein = loggedFood
+                    .Select(x => x.Nutrition.Protein)
+                    .Aggregate((x, y) => x + y),
             };
         }
 
-        public Double CalculateNutrientTotal(string name, FoodDetails food, FoodServing foodServing)
-            => food.Nutrition.Nutrients.Single(x => x.Name == name).Amount
-                * foodServing.ServingSize
-                * foodServing.NumberOfServings;
+        public Double CalculateNutrientTotalPerServing(string name, FoodDetails food, FoodServing foodServing)
+        {
+            var servingSize = foodServing.ServingSize;
+            var numberOfServings = foodServing.NumberOfServings;
+
+            var foodDefaultServing = food.ServingInformation.Size;
+
+            var nutrientAmountPerServing = food.Nutrition.Nutrients.Single(x => x.Name == name).Amount;
+            
+            var ratio = (servingSize * numberOfServings) / foodDefaultServing;
+
+            return Math.Round(ratio * nutrientAmountPerServing, 2);
+        }
     }
 
 }
