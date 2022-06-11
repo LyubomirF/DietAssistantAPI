@@ -187,6 +187,27 @@ namespace DietAssistant.Business
             return Result.Create(GetFoodLogResponse(meal, food, foodServing));
         }
 
+        public async Task<Result<Int32>> DeleteFoodLogAsync(Int32 mealId, Int32 foodServingId)
+        {
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId);
+
+            if (meal is null)
+                return Result
+                    .CreateWithError<Int32>(EvaluationTypes.NotFound, "Meal was not found.");
+
+            var foodServing = meal.FoodServings.SingleOrDefault(x => x.FoodServingId == foodServingId);
+
+            if (foodServing is null)
+                return Result
+                    .CreateWithError<Int32>(EvaluationTypes.NotFound, "Food serving was not found.");
+
+            var result = await _mealRepository.DeleteFoodServingAsync(meal, foodServing);
+
+            return result <= 0
+                ? Result.CreateWithError<Int32>(EvaluationTypes.Failed, "Couldn't delete food serving.")
+                : Result.Create(foodServingId);
+        }
+
         private FoodLogResponse GetFoodLogResponse(Meal meal, FoodDetails food, FoodServing foodServing)
         {
             return new FoodLogResponse
@@ -270,5 +291,4 @@ namespace DietAssistant.Business
             return Math.Round(ratio * nutrientAmountPerServing, 2);
         }
     }
-
 }

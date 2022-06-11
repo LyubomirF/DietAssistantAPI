@@ -10,6 +10,8 @@ namespace DietAssistant.DataAccess.Contracts
 
         Task<Meal> GetLastMealAsync(DateTime date);
 
-        Task<int> DeleteMealAsync(Meal meal);
+        Task<Int32> DeleteMealAsync(Meal meal);
+
+        Task<Int32> DeleteFoodServingAsync(Meal meal, FoodServing foodServing);
     }
 }

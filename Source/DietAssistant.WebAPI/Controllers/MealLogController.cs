@@ -42,6 +42,8 @@ namespace DietAssistant.WebAPI.Controllers
             [FromBody] UpdateFoodLogRequest request)
             => await _mealLogService.UpdateFoodLogAsync(mealId, foodServingId, request).ToActionResult(this);
 
-
+        [HttpDelete("meal/{mealId}/food-serving/{foodServingId}")]
+        public async Task<IActionResult> DeleteFoodLogAsync([FromRoute] Int32 mealId, [FromRoute] Int32 foodServingId)
+            => await _mealLogService.DeleteFoodLogAsync(mealId, foodServingId).ToActionResult(this);
     }
 }

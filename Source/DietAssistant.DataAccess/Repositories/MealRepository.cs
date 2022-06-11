@@ -33,7 +33,7 @@ namespace DietAssistant.DataAccess.Repositories
         Task<Meal> IRepository<Meal>.GetByIdAsync(int id)
             => GetByIdAsync(id);
 
-        public async Task<int> DeleteMealAsync(Meal meal)
+        public async Task<Int32> DeleteMealAsync(Meal meal)
         {
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
@@ -54,6 +54,13 @@ namespace DietAssistant.DataAccess.Repositories
             await transaction.CommitAsync();
 
             return result;
+        }
+
+        public async Task<Int32> DeleteFoodServingAsync(Meal meal, FoodServing foodServing)
+        {
+            meal.FoodServings.Remove(foodServing);
+
+            return await _dbContext.SaveChangesAsync();
         }
     }
 }
