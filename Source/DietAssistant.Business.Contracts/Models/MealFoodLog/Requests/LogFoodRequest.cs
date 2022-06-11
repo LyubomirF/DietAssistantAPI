@@ -8,10 +8,10 @@ namespace DietAssistant.Business.Contracts.Models.MealFoodLog.Requests
         public Int32 FoodId { get; set; }
 
         [Required]
-        public Double ServingSizeAmount { get; set; }
+        public Double ServingSize { get; set; }
 
         [Required]
-        public String ServingSizeUnit { get; set; }
+        public String Unit { get; set; }
 
         [Required]
         public Int32 NumberOfServings { get; set; }
