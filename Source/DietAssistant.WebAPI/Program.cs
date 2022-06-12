@@ -4,7 +4,9 @@ using DietAssistant.Business.Contracts;
 using DietAssistant.DataAccess;
 using DietAssistant.DataAccess.Contracts;
 using DietAssistant.DataAccess.Repositories;
+using DietAssistant.Domain;
 using DietAssistant.WebAPI.Extentions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,8 +22,12 @@ services.AddDbContext<DietAssistantDbContext>(options =>
 services.Configure<NutritionApiConfiguration>(
     configuration.GetSection(nameof(NutritionApiConfiguration)));
 
+services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
+
 services.AddTransient<IMealLogService, MealLogService>();
 services.AddTransient<IFoodCatalogService, FoodCatalogService>();
+services.AddTransient<IAuthenticationService, AuthenticationService>();
+
 services.AddTransient<IMealRepository, MealRepository>();
 
 services.AddControllers();

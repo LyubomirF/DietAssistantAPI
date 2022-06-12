@@ -6,6 +6,10 @@ namespace DietAssistant.Domain
     {
         public Int32 UserId { get; set; }
 
+        public String Email { get; set; }
+
+        public String PasswordHash { get; set; }
+
         public String Name { get; set; }
 
         public UserStats UserStats { get; set; }
