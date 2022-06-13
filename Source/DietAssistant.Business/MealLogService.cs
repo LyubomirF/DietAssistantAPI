@@ -10,13 +10,16 @@ namespace DietAssistant.Business
 {
     public class MealLogService : IMealLogService
     {
+        private readonly IUserResolverService _userResolverService;
         private readonly IFoodCatalogService _foodCatalogService;
         private readonly IMealRepository _mealRepository;
 
         public MealLogService(
+            IUserResolverService userResolverService,
             IFoodCatalogService foodCatalogService,
             IMealRepository mealRepository)
         {
+            _userResolverService = userResolverService;
             _foodCatalogService = foodCatalogService;
             _mealRepository = mealRepository;
         }
@@ -24,7 +27,12 @@ namespace DietAssistant.Business
         //meals
         public async Task<Result<MealLogResponse>> GetMealById(Int32 id)
         {
-            var meal = await _mealRepository.GetMealByIdWithFoodServings(id);
+            var currentUser = await _userResolverService.GetCurrentUserAsync();
+
+            if (currentUser == null)
+                return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
+
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUser.UserId);
 
             if (meal is null)
                 return Result
@@ -42,7 +50,12 @@ namespace DietAssistant.Business
 
         public async Task<Result<MealLogResponse>> UpdateMealLogAsync(Int32 id, UpdateMealLogRequest request)
         {
-            var meal = await _mealRepository.GetMealByIdWithFoodServings(id);
+            var currentUser = await _userResolverService.GetCurrentUserAsync();
+
+            if (currentUser == null)
+                return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
+
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUser.UserId);
 
             if (meal is null)
                 return Result
@@ -76,7 +89,12 @@ namespace DietAssistant.Business
 
         public async Task<Result<Int32>> DeleteMealAsync(Int32 id)
         {
-            var meal = await _mealRepository.GetByIdAsync(id);
+            var currentUser = await _userResolverService.GetCurrentUserAsync();
+
+            if (currentUser == null)
+                return Result.CreateWithError<Int32>(EvaluationTypes.Unauthorized, "Unauthorized.");
+
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUser.UserId);
 
             if (meal is null)
                 return Result.CreateWithError<Int32>(EvaluationTypes.NotFound, "Meal was not found.");
@@ -90,6 +108,11 @@ namespace DietAssistant.Business
 
         public async Task<Result<MealLogResponse>> LogMealAsync(LogMealRequest request)
         {
+            var currentUser = await _userResolverService.GetCurrentUserAsync();
+
+            if (currentUser == null)
+                return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
+
             var foods = (await _foodCatalogService
                 .GetFoodsAsync(request.FoodServings.Select(x => x.FoodId))).Data;
 
@@ -97,7 +120,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, "Food with id not found.");
 
-            var lastMeal = await _mealRepository.GetLastMealAsync(request.Date);
+            var lastMeal = await _mealRepository.GetLastMealAsync(request.Date, currentUser.UserId);
 
             var foodServings = request.FoodServings
                     .Select(x => new FoodServing
@@ -108,8 +131,10 @@ namespace DietAssistant.Business
                         NumberOfServings = x.Number
                     }).ToList();
 
-            var newMeal = new Meal();
-            newMeal.UserId = 1;
+            var newMeal = new Meal
+            {
+                UserId = currentUser.UserId
+            };
 
             if (lastMeal is null)
             {
@@ -132,6 +157,11 @@ namespace DietAssistant.Business
         //foods
         public async Task<Result<FoodLogResponse>> LogFoodAsync(Int32 mealId, LogFoodRequest request)
         {
+            var currentUser = await _userResolverService.GetCurrentUserAsync();
+
+            if (currentUser == null)
+                return Result.CreateWithError<FoodLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
+
             var food = (await _foodCatalogService.GetFoodByIdAsync(request.FoodId)).Data;
 
             if (food is null)
@@ -146,7 +176,7 @@ namespace DietAssistant.Business
                 ServingUnit = request.Unit
             };
 
-            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId);
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId, currentUser.UserId);
 
             if (meal is null)
                 return Result
@@ -164,7 +194,12 @@ namespace DietAssistant.Business
             Int32 foodServingId,
             UpdateFoodLogRequest request)
         {
-            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId);
+            var currentUser = await _userResolverService.GetCurrentUserAsync();
+
+            if (currentUser == null)
+                return Result.CreateWithError<FoodLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
+
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId, currentUser.UserId);
 
             if (meal is null)
                 return Result
@@ -189,7 +224,12 @@ namespace DietAssistant.Business
 
         public async Task<Result<Int32>> DeleteFoodLogAsync(Int32 mealId, Int32 foodServingId)
         {
-            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId);
+            var currentUser = await _userResolverService.GetCurrentUserAsync();
+
+            if (currentUser == null)
+                return Result.CreateWithError<Int32>(EvaluationTypes.Unauthorized, "Unauthorized.");
+
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId, currentUser.UserId);
 
             if (meal is null)
                 return Result
