@@ -277,14 +277,14 @@ namespace DietAssistant.Business
             };
         }
 
-        public Double CalculateNutrientTotalPerServing(string name, FoodDetails food, FoodServing foodServing)
+        private Double CalculateNutrientTotalPerServing(string nutrientName, FoodDetails food, FoodServing foodServing)
         {
             var servingSize = foodServing.ServingSize;
             var numberOfServings = foodServing.NumberOfServings;
 
             var foodDefaultServing = food.ServingInformation.Size;
 
-            var nutrientAmountPerServing = food.Nutrition.Nutrients.Single(x => x.Name == name).Amount;
+            var nutrientAmountPerServing = food.Nutrition.Nutrients.Single(x => x.Name == nutrientName).Amount;
 
             var ratio = (servingSize * numberOfServings) / foodDefaultServing;
 
