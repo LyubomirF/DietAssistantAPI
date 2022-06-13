@@ -4,6 +4,7 @@ using DietAssistant.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DietAssistant.DataAccess.DbContext.Migrations
 {
     [DbContext(typeof(DietAssistantDbContext))]
-    partial class DietAssistantDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220613184655_AddUserProperties")]
+    partial class AddUserProperties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
