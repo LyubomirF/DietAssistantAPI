@@ -6,5 +6,7 @@ namespace DietAssistant.Business.Contracts
     public interface IAuthenticationService
     {
         Task<Result<AuthenticationResponse>> AuthenticateWithPasswordAsync(AuthenticationRequest request);
+
+        Task<Result<Boolean>> RegisterAsync(RegisterRequest request);
     }
 }

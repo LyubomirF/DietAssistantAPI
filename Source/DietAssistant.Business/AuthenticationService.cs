@@ -53,7 +53,37 @@ namespace DietAssistant.Business
                 ExpiresIn = _config.TokenLifetimeSeconds
             };
 
-            return Result.Create(response);
+            return response.AccessToken == null
+                ? Result.CreateWithError<AuthenticationResponse>(EvaluationTypes.Unauthorized, "Unauthorized.")
+                : Result.Create(response);
+        }
+
+        public async Task<Result<Boolean>> RegisterAsync(RegisterRequest request)
+        {
+            // TODO: Validate email
+            var user = await _userRepository.GetUserByEmailAsync(request.Email);
+
+            if (user is not null)
+                return Result
+                    .CreateWithError<Boolean>(EvaluationTypes.InvalidParameters, "User with email already exists.");
+
+            if (request.Password != request.ConfirmPassword)
+                return Result
+                    .CreateWithError<Boolean>(EvaluationTypes.InvalidParameters, "Passwords must match.");
+
+            var newUser = new User
+            {
+                Email = request.Email,
+                Name = request.Name,
+            };
+
+            var hashedPassword = _passwordHasher.HashPassword(newUser, request.Password);
+
+            newUser.PasswordHash = hashedPassword;
+
+            await _userRepository.SaveEntityAsync(newUser);
+
+            return Result.Create(true);
         }
 
         private string GetAccessTokenAsync(User user)

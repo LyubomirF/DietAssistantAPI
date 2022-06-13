@@ -11,6 +11,7 @@ namespace DietAssistant.Common
         Success = 1,
         InvalidParameters = 2,
         NotFound = 3,
-        Failed = 4,
+        Unauthorized = 4,
+        Failed = 5,
     }
 }
