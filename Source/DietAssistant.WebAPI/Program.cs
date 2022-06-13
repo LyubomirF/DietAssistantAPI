@@ -19,6 +19,7 @@ services.AddDbContext<DietAssistantDbContext>(options =>
 
 services.AddConfiguration(configuration);
 
+services.AddHttpContextAccessor();
 services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
 
 services.AddServices();
