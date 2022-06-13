@@ -1,9 +1,5 @@
-using DietAssistant.Business;
 using DietAssistant.Business.Configuration;
-using DietAssistant.Business.Contracts;
 using DietAssistant.DataAccess;
-using DietAssistant.DataAccess.Contracts;
-using DietAssistant.DataAccess.Repositories;
 using DietAssistant.Domain;
 using DietAssistant.WebAPI.Extentions;
 using Microsoft.AspNetCore.Identity;
@@ -15,25 +11,24 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
 var services = builder.Services;
+var authConfig = configuration.GetSection(nameof(AuthConfiguration)).Get<AuthConfiguration>();
+
 
 services.AddDbContext<DietAssistantDbContext>(options =>
     options.UseSqlServer(configuration.GetConnectionString("DietAssistantContextConnection")));
 
-services.Configure<NutritionApiConfiguration>(
-    configuration.GetSection(nameof(NutritionApiConfiguration)));
+services.AddConfiguration(configuration);
 
 services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
 
-services.AddTransient<IMealLogService, MealLogService>();
-services.AddTransient<IFoodCatalogService, FoodCatalogService>();
-services.AddTransient<IAuthenticationService, AuthenticationService>();
-
-services.AddTransient<IMealRepository, MealRepository>();
+services.AddServices();
+services.AddRepositories();
 
 services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 services.AddEndpointsApiExplorer();
-services.AddSwaggerGen();
+services.AddCustomSwagger();
+services.AddJwtConfiguration(authConfig);
 
 var app = builder.Build();
 
@@ -43,7 +38,7 @@ app.UseExceptionHandlerMiddleware();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DietAssistant.WebAPI v1"));
 }
 
 app.UseHttpsRedirection();

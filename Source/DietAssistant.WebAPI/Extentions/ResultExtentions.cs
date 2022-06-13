@@ -12,6 +12,7 @@ namespace DietAssistant.WebAPI.Extentions
                 EvaluationTypes.Success => controller.Ok(result),
                 EvaluationTypes.InvalidParameters => controller.BadRequest(result),
                 EvaluationTypes.NotFound => controller.NotFound(result),
+                EvaluationTypes.Unauthorized => controller.Unauthorized(result),
                 EvaluationTypes.Failed => controller.StatusCode((int)HttpStatusCode.InternalServerError, result),
                 _ => throw new NotSupportedException("Action is not supported")
             };
