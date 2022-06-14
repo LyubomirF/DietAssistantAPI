@@ -27,12 +27,12 @@ namespace DietAssistant.Business
         //meals
         public async Task<Result<MealLogResponse>> GetMealById(Int32 id)
         {
-            var currentUser = await _userResolverService.GetCurrentUserAsync();
+            var currentUserId = _userResolverService.GetCurrentUserId();
 
-            if (currentUser == null)
+            if (!currentUserId.HasValue)
                 return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
 
-            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUser.UserId);
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
 
             if (meal is null)
                 return Result
@@ -50,12 +50,12 @@ namespace DietAssistant.Business
 
         public async Task<Result<MealLogResponse>> UpdateMealLogAsync(Int32 id, UpdateMealLogRequest request)
         {
-            var currentUser = await _userResolverService.GetCurrentUserAsync();
+            var currentUserId = _userResolverService.GetCurrentUserId();
 
-            if (currentUser == null)
+            if (!currentUserId.HasValue)
                 return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
 
-            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUser.UserId);
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
 
             if (meal is null)
                 return Result
@@ -89,12 +89,12 @@ namespace DietAssistant.Business
 
         public async Task<Result<Int32>> DeleteMealAsync(Int32 id)
         {
-            var currentUser = await _userResolverService.GetCurrentUserAsync();
+            var currentUserId = _userResolverService.GetCurrentUserId();
 
-            if (currentUser == null)
+            if (!currentUserId.HasValue)
                 return Result.CreateWithError<Int32>(EvaluationTypes.Unauthorized, "Unauthorized.");
 
-            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUser.UserId);
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
 
             if (meal is null)
                 return Result.CreateWithError<Int32>(EvaluationTypes.NotFound, "Meal was not found.");
@@ -108,9 +108,9 @@ namespace DietAssistant.Business
 
         public async Task<Result<MealLogResponse>> LogMealAsync(LogMealRequest request)
         {
-            var currentUser = await _userResolverService.GetCurrentUserAsync();
+            var currentUserId = _userResolverService.GetCurrentUserId();
 
-            if (currentUser == null)
+            if (!currentUserId.HasValue)
                 return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
 
             var foods = (await _foodCatalogService
@@ -120,7 +120,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, "Food with id not found.");
 
-            var lastMeal = await _mealRepository.GetLastMealAsync(request.Date, currentUser.UserId);
+            var lastMeal = await _mealRepository.GetLastMealAsync(request.Date, currentUserId.Value);
 
             var foodServings = request.FoodServings
                     .Select(x => new FoodServing
@@ -133,7 +133,7 @@ namespace DietAssistant.Business
 
             var newMeal = new Meal
             {
-                UserId = currentUser.UserId
+                UserId = currentUserId.Value
             };
 
             if (lastMeal is null)
@@ -157,9 +157,9 @@ namespace DietAssistant.Business
         //foods
         public async Task<Result<FoodLogResponse>> LogFoodAsync(Int32 mealId, LogFoodRequest request)
         {
-            var currentUser = await _userResolverService.GetCurrentUserAsync();
+            var currentUserId = _userResolverService.GetCurrentUserId();
 
-            if (currentUser == null)
+            if (!currentUserId.HasValue)
                 return Result.CreateWithError<FoodLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
 
             var food = (await _foodCatalogService.GetFoodByIdAsync(request.FoodId)).Data;
@@ -176,7 +176,7 @@ namespace DietAssistant.Business
                 ServingUnit = request.Unit
             };
 
-            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId, currentUser.UserId);
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId, currentUserId.Value);
 
             if (meal is null)
                 return Result
@@ -194,12 +194,12 @@ namespace DietAssistant.Business
             Int32 foodServingId,
             UpdateFoodLogRequest request)
         {
-            var currentUser = await _userResolverService.GetCurrentUserAsync();
+            var currentUserId = _userResolverService.GetCurrentUserId();
 
-            if (currentUser == null)
+            if (!currentUserId.HasValue)
                 return Result.CreateWithError<FoodLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
 
-            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId, currentUser.UserId);
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId, currentUserId.Value);
 
             if (meal is null)
                 return Result
@@ -224,12 +224,12 @@ namespace DietAssistant.Business
 
         public async Task<Result<Int32>> DeleteFoodLogAsync(Int32 mealId, Int32 foodServingId)
         {
-            var currentUser = await _userResolverService.GetCurrentUserAsync();
+            var currentUserId = _userResolverService.GetCurrentUserId();
 
-            if (currentUser == null)
+            if (!currentUserId.HasValue)
                 return Result.CreateWithError<Int32>(EvaluationTypes.Unauthorized, "Unauthorized.");
 
-            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId, currentUser.UserId);
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(mealId, currentUserId.Value);
 
             if (meal is null)
                 return Result
@@ -254,6 +254,7 @@ namespace DietAssistant.Business
             {
                 MealId = meal.MealId,
                 MealOrder = meal.Order,
+                EatenOn = meal.EatenOn,
                 Food = new LoggedFood
                 {
                     FoodServingId = foodServing.FoodServingId,

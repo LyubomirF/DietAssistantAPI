@@ -1,8 +1,7 @@
 ﻿using DietAssistant.Business.Contracts;
 using DietAssistant.DataAccess.Contracts;
-using DietAssistant.Domain;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.JsonWebTokens;
+using System.Security.Claims;
 
 namespace DietAssistant.Business
 {
@@ -19,14 +18,14 @@ namespace DietAssistant.Business
             _userRepository = userRepository;
         }
 
-        public async Task<User> GetCurrentUserAsync()
+        public Int32? GetCurrentUserId()
         {
-            if (int.TryParse(_httpContext.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value, out int userId))
-                return null; 
+            var claim = _httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            var user = await _userRepository.GetByIdAsync(userId);
+            if (!int.TryParse(claim, out int userId))
+                return null;
 
-            return user;
+            return userId;
         }
     }
 }
