@@ -11,8 +11,6 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
 var services = builder.Services;
-var authConfig = configuration.GetSection(nameof(AuthConfiguration)).Get<AuthConfiguration>();
-
 
 services.AddDbContext<DietAssistantDbContext>(options =>
     options.UseSqlServer(configuration.GetConnectionString("DietAssistantContextConnection")));
@@ -29,7 +27,7 @@ services.AddControllers();
 
 services.AddEndpointsApiExplorer();
 services.AddCustomSwagger();
-services.AddJwtConfiguration(authConfig);
+services.AddJwtConfiguration(configuration);
 
 var app = builder.Build();
 
@@ -44,6 +42,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

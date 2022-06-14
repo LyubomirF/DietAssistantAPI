@@ -9,7 +9,6 @@
             => new Result<TModel>(default, evalution, new List<string> { message });
 
         public static Result<TModel> CreateWithErrors<TModel>(EvaluationTypes evalution, List<string> messages)
-            => new Result<TModel>(default, evalution, messages);
-       
+            => new Result<TModel>(default, evalution, messages);   
     }
 }

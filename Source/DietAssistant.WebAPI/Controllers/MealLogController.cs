@@ -1,13 +1,14 @@
 ﻿using DietAssistant.Business.Contracts;
 using DietAssistant.Business.Contracts.Models.MealFoodLog.Requests;
 using DietAssistant.WebAPI.Extentions;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DietAssistant.WebAPI.Controllers
 {
     [Route("api/log")]
     [ApiController]
+    [Authorize]
     public class MealLogController : ControllerBase
     {
         private readonly IMealLogService _mealLogService;

@@ -4,6 +4,6 @@ namespace DietAssistant.Business.Contracts
 {
     public interface IUserResolverService
     {
-        Task<User> GetCurrentUserAsync();
+        Int32? GetCurrentUserId();
     }
 }

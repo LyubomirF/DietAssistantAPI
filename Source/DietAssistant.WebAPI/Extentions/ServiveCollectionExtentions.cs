@@ -63,8 +63,10 @@ namespace DietAssistant.WebAPI.Extentions
             });
         }
 
-        public static void AddJwtConfiguration(this IServiceCollection services, AuthConfiguration config)
+        public static void AddJwtConfiguration(this IServiceCollection services, IConfiguration config)
         {
+            var authConfig = config.GetSection(nameof(AuthConfiguration)).Get<AuthConfiguration>();
+
             services
                 .AddAuthentication(options =>
                 {
@@ -74,13 +76,14 @@ namespace DietAssistant.WebAPI.Extentions
                 .AddJwtBearer(configuration =>
                 {
                     configuration.RequireHttpsMetadata = false;
+                    configuration.SaveToken = true;
                     configuration.TokenValidationParameters = new TokenValidationParameters
                     {
-                        IssuerSigningKey = new SymmetricSecurityKey(config.SecurityKeyAsBytes),
+                        IssuerSigningKey = new SymmetricSecurityKey(authConfig.SecurityKeyAsBytes),
                         ValidateAudience = true,
-                        ValidAudience = config.Audience,
+                        ValidAudience = authConfig.Audience,
                         ValidateIssuer = true,
-                        ValidIssuer = config.Issuer,
+                        ValidIssuer = authConfig.Issuer,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         ClockSkew = TimeSpan.Zero
