@@ -14,6 +14,6 @@ namespace DietAssistant.Business.Contracts.Models.MealFoodLog.Requests
         public String Unit { get; set; }
 
         [Required]
-        public Int32 NumberOfServings { get; set; }
+        public Double NumberOfServings { get; set; }
     }
 }
