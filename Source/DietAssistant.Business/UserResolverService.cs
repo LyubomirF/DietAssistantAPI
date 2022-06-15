@@ -8,15 +8,9 @@ namespace DietAssistant.Business
     public class UserResolverService : IUserResolverService
     {
         private readonly HttpContext _httpContext;
-        private readonly IUserRepository _userRepository;
 
-        public UserResolverService(
-            IHttpContextAccessor httpContextAccessor,
-            IUserRepository userRepository)
-        {
-            _httpContext = httpContextAccessor.HttpContext;
-            _userRepository = userRepository;
-        }
+        public UserResolverService(IHttpContextAccessor httpContextAccessor)
+            => _httpContext = httpContextAccessor.HttpContext;
 
         public Int32? GetCurrentUserId()
         {

@@ -1,4 +1,4 @@
-﻿using DietAssistant.Business.Contracts.Models.FoodServing;
+﻿using DietAssistant.Business.Contracts.Models.FoodServing.Requests;
 
 namespace DietAssistant.Business.Contracts.Models.MealFoodLog.Requests
 {
@@ -6,6 +6,6 @@ namespace DietAssistant.Business.Contracts.Models.MealFoodLog.Requests
     {
         public DateTime Date { get; set; }
 
-        public List<FoodServingDto > FoodServings { get; set; }
+        public List<LogUpdateFoodServingRequest> FoodServings { get; set; }
     }
 }

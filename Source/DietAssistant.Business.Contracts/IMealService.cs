@@ -4,7 +4,7 @@ using DietAssistant.Common;
 
 namespace DietAssistant.Business.Contracts
 {
-    public interface IMealLogService
+    public interface IMealService
     {
         Task<Result<MealLogResponse>> GetMealById(Int32 id);
 
@@ -13,11 +13,5 @@ namespace DietAssistant.Business.Contracts
         Task<Result<MealLogResponse>> UpdateMealLogAsync(Int32 id, UpdateMealLogRequest request);
 
         Task<Result<Int32>> DeleteMealAsync(Int32 id);
-
-        Task<Result<FoodLogResponse>> LogFoodAsync(Int32 mealdId, LogFoodRequest request);
-
-        Task<Result<FoodLogResponse>> UpdateFoodLogAsync(Int32 mealId, Int32 foodServingId, UpdateFoodLogRequest request);
-
-        Task<Result<Int32>> DeleteFoodLogAsync(Int32 mealId, Int32 foodServingId);
     }
 }
