@@ -18,5 +18,15 @@ namespace DietAssistant.Business.Helpers
 
             return Math.Round(ratio * nutrientAmountPerServing, 2);
         }
+
+        public static Double CalculateNutrientAmount(
+            Double defautServingSize,
+            Double defaultNutrientAmount,
+            Double targetFoodAmount)
+        {
+            var ratio = targetFoodAmount / defautServingSize;
+
+            return Math.Round(ratio * defaultNutrientAmount, 2);
+        }
     }
 }

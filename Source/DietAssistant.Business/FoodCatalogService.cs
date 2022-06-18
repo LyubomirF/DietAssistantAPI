@@ -7,6 +7,8 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using RestSharp;
 
+#pragma warning disable
+
 namespace DietAssistant.Business
 {
     public class FoodCatalogService : IFoodCatalogService
@@ -31,7 +33,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<FoodSearch>(EvaluationTypes.Failed, "Unable to fetch results.");
 
-            var data = JsonToFoodSearch(response.Content);
+            var data = JsonToFoodSearch(response.Content, requestModel);
 
             if (data is null)
                 return Result
@@ -40,26 +42,25 @@ namespace DietAssistant.Business
             return Result.Create(data);
         }
 
-        public async Task<Result<FoodDetails>> GetFoodByIdAsync(Int32 id)
+        public Task<Result<FoodDetails>> GetFoodByIdAsync(String id, ServingRequest request)
         {
-            var request = new RestRequest(NutritionApiRoutes.GetFood(id));
+            var foodId = int.Parse(id.Substring(1));
 
-            var response = await _restClient.GetAsync(request);
+            if (IsProduct(id))
+            {
+                return GetFoodDetails(NutritionApiRoutes.GetProduct(foodId), null, ProductJsonToFoodDetails);
+            }
 
-            if (response is null)
-                return Result
-                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, "Unable to fetch results.");
+            var queryParams = new List<(string name, string value)>
+            {
+                ("amount", "100"),
+                ("unit", "gram") 
+            };
 
-            var data = JsonToFoodDetails(response.Content);
-
-            if (data is null)
-                return Result
-                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, "Unable to fetch results.");
-
-            return Result.Create(data);
+            return GetFoodDetails(NutritionApiRoutes.GetIngredient(foodId), queryParams, IngredientJsonToFoodDetails);
         }
 
-        public async Task<Result<IReadOnlyCollection<FoodDetails>>> GetFoodsAsync(IEnumerable<Int32> foodIds)
+        public async Task<Result<IReadOnlyCollection<FoodDetails>>> GetFoodsAsync(IEnumerable<String> foodIds)
         {
             var result = new List<FoodDetails>();
 
@@ -79,41 +80,29 @@ namespace DietAssistant.Business
 
         private RestRequest GetSearchFoodsRestRequest(SearchFoodRequest request)
         {
-            var restRequest = new RestRequest(NutritionApiRoutes.SearchFoods);
+            var restRequest = new RestRequest();
 
             restRequest
                 .AddQueryParameter("offset", request.Page)
                 .AddQueryParameter("number", request.PageSize)
                 .AddQueryParameter("query", request.SearchQuery);
 
-            if (request.MinCalories.HasValue)
-                restRequest.AddQueryParameter("minCalories", request.MinCalories.Value);
-
-            if (request.MaxCalories.HasValue)
-                restRequest.AddQueryParameter("maxCalories", request.MaxCalories.Value);
-
-            if (request.MinCarbs.HasValue)
-                restRequest.AddQueryParameter("minCarbs", request.MinCarbs.Value);
-
-            if (request.MaxCarbs.HasValue)
-                restRequest.AddQueryParameter("maxCarbs", request.MaxCarbs.Value);
-
-            if (request.MinFat.HasValue)
-                restRequest.AddQueryParameter("minFat", request.MinFat.Value);
-
-            if (request.MaxFat.HasValue)
-                restRequest.AddQueryParameter("maxFat", request.MaxFat.Value);
-
-            if (request.MinProtein.HasValue)
-                restRequest.AddQueryParameter("minProtein", request.MinProtein.Value);
-
-            if (request.MaxProtein.HasValue)
-                restRequest.AddQueryParameter("maxProtein", request.MaxProtein.Value);
+            if (request.FoodType == FoodType.Product)
+            {
+                restRequest.Resource = NutritionApiRoutes.SearchProducts;
+            }
+            else
+            {
+                restRequest.Resource = NutritionApiRoutes.SearchIngredients;
+                restRequest
+                    .AddQueryParameter("sort", "calories")
+                    .AddQueryParameter("sortDirection", "asc");
+            }
 
             return restRequest;
         }
 
-        private FoodDetails JsonToFoodDetails(string json)
+        private FoodDetails ProductJsonToFoodDetails(string json)
         {
             var definition = new
             {
@@ -136,21 +125,24 @@ namespace DietAssistant.Business
                             Amount = 1.0,
                             Unit = ""
                         }
-                    },
-                    Calories = 1.0,
-                    Carbs = "",
-                    Fat = "",
-                    Protein = ""
+                    }
                 }
             };
 
             var food = JsonConvert.DeserializeAnonymousType(json, definition);
 
+            if (food.Servings.Unit == "g" 
+                || food.Servings.Unit == "gram" 
+                || food.Servings.Unit == "oz"
+                || food.Servings.Unit == "ounce")
+            {
+
+            }
+
             return new FoodDetails
             {
-                FoodId = food.Id,
+                FoodId =  GetProductId(food.Id),
                 FoodName = food.Title,
-                Description = food.Description,
                 ImagePath = food.Image,
                 Nutrition = new Nutrition
                 {
@@ -162,28 +154,91 @@ namespace DietAssistant.Business
                         Unit = x.Unit,
                     })
                     .ToList(),
-                    Calories = food.Nutrition.Calories,
-                    Carbs = food.Nutrition.Carbs,
-                    Fat = food.Nutrition.Fat,
-                    Protein = food.Nutrition.Protein
                 },
                 ServingInformation = new Serving
                 {
                     Number = food.Servings.Number,
                     Unit = food.Servings.Unit,
                     Size = food.Servings.Size
-                }
+                },
+                PossibleUnits = food.Servings.Unit == "g" || food.Servings.Unit == "oz"
+                    ? new List<string> { "g", "oz"}
+                    : new List<string> { food.Servings.Unit }
             };
         }
 
-        private FoodSearch JsonToFoodSearch(string json)
+        private FoodDetails IngredientJsonToFoodDetails(string json)
+        {
+            var definition = new
+            {
+                Id = 1,
+                Name = "",
+                Image = "",
+                Amount = 1.0,
+                UnitShort = "",
+                Nutrition = new
+                {
+                    Nutrients = new[]
+                    {
+                        new {
+                            Name = "",
+                            Amount = 1.0,
+                            Unit = ""
+                        }
+                    },
+                    WeightPerServing = new
+                    {
+                        Amount = 1.0,
+                        Unit = ""
+                    }
+                },
+                PossibleUnits = new[] { "" }
+            };
+
+            var food = JsonConvert.DeserializeAnonymousType(json, definition);
+
+            return new FoodDetails
+            {
+                FoodId = GetProductId(food.Id),
+                FoodName = food.Name,
+                ImagePath = food.Image,
+                Nutrition = new Nutrition
+                {
+                    Nutrients = food.Nutrition.Nutrients
+                    .Select(x => new Nutrient
+                    {
+                        Amount = x.Amount,
+                        Name = x.Name,
+                        Unit = x.Unit,
+                    })
+                    .ToList(),
+                },
+                ServingInformation = new Serving
+                {
+                    Number = 1,
+                    Unit = food.Nutrition.WeightPerServing.Unit,
+                    Size = food.Nutrition.WeightPerServing.Amount
+                },
+                PossibleUnits = food.PossibleUnits.ToList()
+            };
+        }
+
+        private FoodSearch JsonToFoodSearch(string json, SearchFoodRequest requesModel)
+            => requesModel.FoodType switch
+            {
+                FoodType.Product => DeserializeJsonProducts(json),
+                FoodType.WholeFood => DeserializeJsonIngredients(json),
+                _ => null
+            };   
+
+        private FoodSearch DeserializeJsonProducts(string json)
         {
             var definition = new
             {
                 Products = new[]
                 {
-                    new 
-                    { 
+                    new
+                    {
                         Id = 1,
                         Title = "",
                         Image = ""
@@ -200,7 +255,7 @@ namespace DietAssistant.Business
             {
                 Foods = foods.Products.Select(x => new Food
                 {
-                    FoodId = x.Id,
+                    FoodId = GetProductId(x.Id),
                     FoodName = x.Title,
                     ImagePath = x.Image
                 })
@@ -210,5 +265,77 @@ namespace DietAssistant.Business
                 TotalFoods = foods.TotalProducts,
             };
         }
+
+        private FoodSearch DeserializeJsonIngredients(string json)
+        {
+            var definition = new
+            {
+                Results = new[]
+                {
+                    new
+                    {
+                        Id = 1,
+                        Name = "",
+                        Image = ""
+                    }
+                },
+                Offset = 1,
+                Number = 1,
+                TotallResults = 1
+            };
+
+            var foods = JsonConvert.DeserializeAnonymousType(json, definition);
+
+            return new FoodSearch
+            {
+                Foods = foods.Results.Select(x => new Food
+                {
+                    FoodId = GetWholeFoodId(x.Id),
+                    FoodName = x.Name,
+                    ImagePath = x.Image
+                })
+                .ToList(),
+                Page = foods.Offset,
+                PageSize = foods.Number,
+                TotalFoods = foods.TotallResults,
+            };
+        }
+
+        private async Task<Result<FoodDetails>> GetFoodDetails(
+            String url,
+            List<(string name, string value)> parameters,
+            Func<string, FoodDetails> converter)
+        {
+            var request = new RestRequest(url);
+
+            if(parameters is not null)
+            {
+                foreach (var param in parameters)
+                {
+                    request.AddQueryParameter(param.name, param.value);
+                }
+            }
+
+            var response = await _restClient.GetAsync(request);
+
+            if (response is null)
+                return Result
+                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, "Unable to fetch results.");
+
+            var data = converter(response.Content);
+
+            if (data is null)
+                return Result
+                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, "Unable to fetch results.");
+
+            return Result.Create(data);
+        }
+
+        private String GetProductId(Int32 id) => "P" + id;
+
+        private String GetWholeFoodId(Int32 id) => "W" + id;
+
+        private Boolean IsProduct(String id) =>
+            id.Substring(0, 1) == "P";
     }
 }

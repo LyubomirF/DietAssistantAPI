@@ -159,7 +159,7 @@ namespace DietAssistant.Business
             IReadOnlyCollection<FoodDetails> foods,
             Meal meal)
         {
-            List<LoggedFoodServing>? loggedFood = foodServings
+            var loggedFood = foodServings
                 .Select(fs => new
                 {
                     FoodServing = fs,

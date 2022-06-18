@@ -4,9 +4,9 @@
     {
         public int FoodServingId { get; set; }
 
-        public int FoodId { get; set; }
+        public String FoodId { get; set; }
 
-        public string FoodName { get; set; }
+        public String FoodName { get; set; }
 
         public LoggedNutrition Nutrition { get; set; }
 

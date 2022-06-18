@@ -10,20 +10,12 @@ namespace DietAssistant.Business.Contracts.Models.FoodCatalog.Requests
         [Required]
         public string SearchQuery { get; set; }
 
-        public double? MinCalories { get; set; }
+        public FoodType FoodType { get; set; } = FoodType.Product;
+    }
 
-        public double? MaxCalories { get; set; }
-
-        public double? MaxCarbs { get; set; }
-
-        public double? MinCarbs { get; set; }
-
-        public double? MaxFat { get; set; }
-
-        public double? MinFat { get; set; }
-
-        public double? MaxProtein { get; set; }
-
-        public double? MinProtein { get; set; }
+    public enum FoodType
+    {
+        Product = 1,
+        WholeFood = 2,
     }
 }
