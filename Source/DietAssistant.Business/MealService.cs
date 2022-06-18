@@ -33,7 +33,7 @@ namespace DietAssistant.Business
             if (!currentUserId.HasValue)
                 return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
 
-            Meal? meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
 
             if (meal is null)
                 return Result
@@ -63,7 +63,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, "Food with id not found.");
 
-            Meal? lastMeal = await _mealRepository.GetLastMealAsync(request.Date, currentUserId.Value);
+            var lastMeal = await _mealRepository.GetLastMealAsync(request.Date, currentUserId.Value);
 
             List<FoodServing>? foodServings = request.FoodServings
                     .Select(x => new FoodServing
@@ -73,8 +73,7 @@ namespace DietAssistant.Business
                         ServingUnit = x.Unit,
                         NumberOfServings = x.NumberOfServings
                     }).ToList();
-
-            Meal? newMeal = new Meal
+            var newMeal = new Meal
             {
                 UserId = currentUserId.Value
             };
@@ -104,7 +103,7 @@ namespace DietAssistant.Business
             if (!currentUserId.HasValue)
                 return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
 
-            Meal? meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
 
             if (meal is null)
                 return Result
@@ -143,7 +142,7 @@ namespace DietAssistant.Business
             if (!currentUserId.HasValue)
                 return Result.CreateWithError<Int32>(EvaluationTypes.Unauthorized, "Unauthorized.");
 
-            Meal? meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
+            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
 
             if (meal is null)
                 return Result.CreateWithError<Int32>(EvaluationTypes.NotFound, "Meal was not found.");
