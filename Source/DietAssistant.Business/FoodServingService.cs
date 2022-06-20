@@ -33,7 +33,7 @@ namespace DietAssistant.Business
             if (!currentUserId.HasValue)
                 return Result.CreateWithError<FoodServingResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
 
-            var food = await _foodCatalogService.GetFoodByIdAsync(
+            var foodResponse = await _foodCatalogService.GetFoodByIdAsync(
                 request.FoodId,
                 new ServingRequest
                 {
@@ -41,9 +41,9 @@ namespace DietAssistant.Business
                     Unit = request.Unit
                 });
 
-            if (food is null)
+            if (foodResponse.IsFailure())
                 return Result
-                    .CreateWithError<FoodServingResponse>(EvaluationTypes.NotFound, "Food with id not found.");
+                    .CreateWithErrors<FoodServingResponse>(foodResponse.EvaluationResult, foodResponse.Errors);
 
             var foodServing = new FoodServing
             {
@@ -63,7 +63,7 @@ namespace DietAssistant.Business
 
             await _mealRepository.SaveEntityAsync(meal);
 
-            return Result.Create(GetFoodLogResponse(meal, food, foodServing));
+            return Result.Create(GetFoodLogResponse(meal, foodResponse.Data, foodServing));
         }
 
         public async Task<Result<FoodServingResponse>> UpdateFoodServingLogAsync(
@@ -94,13 +94,17 @@ namespace DietAssistant.Business
 
             await _mealRepository.SaveEntityAsync(meal);
 
-            var food = (await _foodCatalogService.GetFoodByIdAsync(foodServing.FoodId, new ServingRequest
+            var foodResponse = await _foodCatalogService.GetFoodByIdAsync(foodServing.FoodId, new ServingRequest
             {
                 Amount = request.ServingSize,
                 Unit = request.Unit
-            })).Data;
+            });
 
-            return Result.Create(GetFoodLogResponse(meal, food, foodServing));
+            if(foodResponse.IsFailure())
+               return Result
+                    .CreateWithErrors<FoodServingResponse>(foodResponse.EvaluationResult, foodResponse.Errors);
+
+            return Result.Create(GetFoodLogResponse(meal, foodResponse.Data, foodServing));
         }
 
         public async Task<Result<Int32>> DeleteFoodServingLogAsync(Int32 mealId, Int32 foodServingId)
