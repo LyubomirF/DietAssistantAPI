@@ -9,6 +9,5 @@
         public String FoodName { get; set; }
 
         public LoggedNutrition Nutrition { get; set; }
-
     }
 }

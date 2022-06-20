@@ -101,7 +101,7 @@ namespace DietAssistant.Business
                 FoodType.Product => DeserializeJsonProducts(json),
                 FoodType.WholeFood => DeserializeJsonIngredients(json),
                 _ => null
-            };   
+            };
 
         private FoodSearch DeserializeJsonProducts(string json)
         {
@@ -153,7 +153,7 @@ namespace DietAssistant.Business
                 },
                 Offset = 1,
                 Number = 1,
-                TotallResults = 1
+                TotalResults = 1
             };
 
             var foods = JsonConvert.DeserializeAnonymousType(json, definition);
@@ -169,7 +169,7 @@ namespace DietAssistant.Business
                 .ToList(),
                 Page = foods.Offset,
                 PageSize = foods.Number,
-                TotalFoods = foods.TotallResults,
+                TotalFoods = foods.TotalResults,
             };
         }
 
@@ -177,7 +177,7 @@ namespace DietAssistant.Business
         {
             var restRequest = new RestRequest(NutritionApiRoutes.GetIngredient(id));
 
-            if(request != null && request.Amount.HasValue && request.Unit != null)
+            if (request != null && request.Amount.HasValue && request.Unit != null)
             {
                 restRequest
                     .AddQueryParameter("amount", request.Amount.Value)
@@ -230,7 +230,7 @@ namespace DietAssistant.Business
 
         private Result<FoodDetails> CaculateFoodNutrition(FoodDetails food, ServingRequest request)
         {
-            if (request != null && request.Unit != null && request.Amount.HasValue)
+            if (request != null && request.Unit == null && !request.Amount.HasValue)
                 return Result.Create(food);
 
             if (!IsUnitAllowed(food, request.Unit))
@@ -253,8 +253,8 @@ namespace DietAssistant.Business
                 Image = "",
                 Servings = new
                 {
-                    Number = 1.0,
-                    Size = 1.0,
+                    Number = new Nullable<Double>(1.0),
+                    Size = new Nullable<Double>(1.0),
                     Unit = ""
                 },
                 Nutrition = new
@@ -263,14 +263,18 @@ namespace DietAssistant.Business
                     {
                         new {
                             Name = "",
-                            Amount = 1.0,
+                            Amount = new Nullable<Double>(1.0),
                             Unit = ""
                         }
                     }
                 }
             };
 
-            var food = JsonConvert.DeserializeAnonymousType(json, definition);
+            var food = JsonConvert.DeserializeAnonymousType(json, definition,
+                new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Include
+                });
 
             return new FoodDetails
             {
@@ -282,7 +286,7 @@ namespace DietAssistant.Business
                     Nutrients = food.Nutrition.Nutrients
                     .Select(x => new Nutrient
                     {
-                        Amount = x.Amount,
+                        Amount = x.Amount.HasValue ? x.Amount.Value : 0,
                         Name = x.Name,
                         Unit = x.Unit,
                     })
@@ -290,9 +294,9 @@ namespace DietAssistant.Business
                 },
                 ServingInformation = new Serving
                 {
-                    Number = food.Servings.Number,
+                    Number = food.Servings.Number.HasValue ? food.Servings.Number.Value : 0,
                     Unit = food.Servings.Unit,
-                    Size = food.Servings.Size
+                    Size = food.Servings.Size.HasValue ? food.Servings.Size.Value : 0
                 },
                 PossibleUnits = food.Servings.Unit == "g" || food.Servings.Unit == "oz"
                     ? new List<string> { "g", "oz" }
@@ -315,7 +319,7 @@ namespace DietAssistant.Business
                     {
                         new {
                             Name = "",
-                            Amount = 1.0,
+                            Amount = new Nullable<Double>(1.0),
                             Unit = ""
                         }
                     },
@@ -323,7 +327,11 @@ namespace DietAssistant.Business
                 PossibleUnits = new[] { "" }
             };
 
-            var food = JsonConvert.DeserializeAnonymousType(json, definition);
+            var food = JsonConvert.DeserializeAnonymousType(json, definition,
+                new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Include
+                });
 
             return new FoodDetails
             {
@@ -335,7 +343,7 @@ namespace DietAssistant.Business
                     Nutrients = food.Nutrition.Nutrients
                     .Select(x => new Nutrient
                     {
-                        Amount = x.Amount,
+                        Amount = x.Amount.HasValue ? x.Amount.Value : 0,
                         Name = x.Name,
                         Unit = x.Unit,
                     })

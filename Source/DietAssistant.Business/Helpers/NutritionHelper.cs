@@ -7,13 +7,13 @@ namespace DietAssistant.Business.Helpers
         public static FoodDetails CalculateNutrition(
             this FoodDetails food,
             Double defaultServingSize,
-            String defaultUnit, 
+            String defaultUnit,
             Double targetAmount,
             String targetUnit)
         {
             var convertedTargetAmount = targetAmount;
 
-            if(defaultUnit == "g" && targetUnit == "oz")
+            if (defaultUnit == "g" && targetUnit == "oz")
             {
                 convertedTargetAmount = targetAmount * 28.35;
             }
@@ -40,7 +40,12 @@ namespace DietAssistant.Business.Helpers
 
         public static Double CalculateNutrientAmount(Nutrition nutrition, String nutrientName, Double numberOfServings)
         {
-            return nutrition.Nutrients.Single(x => x.Name == nutrientName).Amount * numberOfServings;
+            var nutrientInfo = nutrition.Nutrients.SingleOrDefault(x => x.Name == nutrientName);
+
+            if (nutrientInfo is null)
+                return 0;
+
+            return nutrientInfo.Amount * numberOfServings;
         }
 
         public static Double CalculateNutrientAmount(
