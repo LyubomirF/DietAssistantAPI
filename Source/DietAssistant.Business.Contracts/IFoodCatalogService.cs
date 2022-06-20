@@ -6,10 +6,10 @@ namespace DietAssistant.Business.Contracts
 {
     public interface IFoodCatalogService
     {
-        Task<Result<FoodDetails>> GetFoodByIdAsync(Int32 id);
+        Task<Result<FoodDetails>> GetFoodByIdAsync(String id, ServingRequest request);
 
         Task<Result<FoodSearch>> SearchFoodsAsync(SearchFoodRequest requestModel);
 
-        Task<Result<IReadOnlyCollection<FoodDetails>>> GetFoodsAsync(IEnumerable<Int32> foodIds);
+        Task<Result<IReadOnlyCollection<FoodDetails>>> GetFoodsAsync(IEnumerable<ManyFoodDetailsRequest> requests);
     }
 }

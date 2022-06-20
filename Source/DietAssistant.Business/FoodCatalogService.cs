@@ -2,6 +2,7 @@
 using DietAssistant.Business.Contracts;
 using DietAssistant.Business.Contracts.Models.FoodCatalog.Requests;
 using DietAssistant.Business.Contracts.Models.FoodCatalog.Responses;
+using DietAssistant.Business.Helpers;
 using DietAssistant.Common;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -47,26 +48,18 @@ namespace DietAssistant.Business
             var foodId = int.Parse(id.Substring(1));
 
             if (IsProduct(id))
-            {
-                return GetFoodDetails(NutritionApiRoutes.GetProduct(foodId), null, ProductJsonToFoodDetails);
-            }
+                return GetDetailsForProduct(foodId, request);
 
-            var queryParams = new List<(string name, string value)>
-            {
-                ("amount", "100"),
-                ("unit", "gram") 
-            };
-
-            return GetFoodDetails(NutritionApiRoutes.GetIngredient(foodId), queryParams, IngredientJsonToFoodDetails);
+            return GetDetailsForWholeFood(foodId, request);
         }
 
-        public async Task<Result<IReadOnlyCollection<FoodDetails>>> GetFoodsAsync(IEnumerable<String> foodIds)
+        public async Task<Result<IReadOnlyCollection<FoodDetails>>> GetFoodsAsync(IEnumerable<ManyFoodDetailsRequest> requests)
         {
             var result = new List<FoodDetails>();
 
-            foreach (var foodId in foodIds)
+            foreach (var request in requests)
             {
-                var foodResponse = await GetFoodByIdAsync(foodId);
+                var foodResponse = await GetFoodByIdAsync(request.FoodId, request.Serving);
 
                 if (foodResponse.IsFailure())
                     return Result
@@ -100,127 +93,6 @@ namespace DietAssistant.Business
             }
 
             return restRequest;
-        }
-
-        private FoodDetails ProductJsonToFoodDetails(string json)
-        {
-            var definition = new
-            {
-                Id = 1,
-                Title = "",
-                Description = "",
-                Image = "",
-                Servings = new
-                {
-                    Number = 1.0,
-                    Size = 1.0,
-                    Unit = ""
-                },
-                Nutrition = new
-                {
-                    Nutrients = new[]
-                    {
-                        new {
-                            Name = "",
-                            Amount = 1.0,
-                            Unit = ""
-                        }
-                    }
-                }
-            };
-
-            var food = JsonConvert.DeserializeAnonymousType(json, definition);
-
-            if (food.Servings.Unit == "g" 
-                || food.Servings.Unit == "gram" 
-                || food.Servings.Unit == "oz"
-                || food.Servings.Unit == "ounce")
-            {
-
-            }
-
-            return new FoodDetails
-            {
-                FoodId =  GetProductId(food.Id),
-                FoodName = food.Title,
-                ImagePath = food.Image,
-                Nutrition = new Nutrition
-                {
-                    Nutrients = food.Nutrition.Nutrients
-                    .Select(x => new Nutrient
-                    {
-                        Amount = x.Amount,
-                        Name = x.Name,
-                        Unit = x.Unit,
-                    })
-                    .ToList(),
-                },
-                ServingInformation = new Serving
-                {
-                    Number = food.Servings.Number,
-                    Unit = food.Servings.Unit,
-                    Size = food.Servings.Size
-                },
-                PossibleUnits = food.Servings.Unit == "g" || food.Servings.Unit == "oz"
-                    ? new List<string> { "g", "oz"}
-                    : new List<string> { food.Servings.Unit }
-            };
-        }
-
-        private FoodDetails IngredientJsonToFoodDetails(string json)
-        {
-            var definition = new
-            {
-                Id = 1,
-                Name = "",
-                Image = "",
-                Amount = 1.0,
-                UnitShort = "",
-                Nutrition = new
-                {
-                    Nutrients = new[]
-                    {
-                        new {
-                            Name = "",
-                            Amount = 1.0,
-                            Unit = ""
-                        }
-                    },
-                    WeightPerServing = new
-                    {
-                        Amount = 1.0,
-                        Unit = ""
-                    }
-                },
-                PossibleUnits = new[] { "" }
-            };
-
-            var food = JsonConvert.DeserializeAnonymousType(json, definition);
-
-            return new FoodDetails
-            {
-                FoodId = GetProductId(food.Id),
-                FoodName = food.Name,
-                ImagePath = food.Image,
-                Nutrition = new Nutrition
-                {
-                    Nutrients = food.Nutrition.Nutrients
-                    .Select(x => new Nutrient
-                    {
-                        Amount = x.Amount,
-                        Name = x.Name,
-                        Unit = x.Unit,
-                    })
-                    .ToList(),
-                },
-                ServingInformation = new Serving
-                {
-                    Number = 1,
-                    Unit = food.Nutrition.WeightPerServing.Unit,
-                    Size = food.Nutrition.WeightPerServing.Amount
-                },
-                PossibleUnits = food.PossibleUnits.ToList()
-            };
         }
 
         private FoodSearch JsonToFoodSearch(string json, SearchFoodRequest requesModel)
@@ -301,34 +173,182 @@ namespace DietAssistant.Business
             };
         }
 
-        private async Task<Result<FoodDetails>> GetFoodDetails(
-            String url,
-            List<(string name, string value)> parameters,
-            Func<string, FoodDetails> converter)
+        private async Task<Result<FoodDetails>> GetDetailsForWholeFood(Int32 id, ServingRequest request)
         {
-            var request = new RestRequest(url);
+            var restRequest = new RestRequest(NutritionApiRoutes.GetIngredient(id));
 
-            if(parameters is not null)
+            if(request != null && request.Amount.HasValue && request.Unit != null)
             {
-                foreach (var param in parameters)
-                {
-                    request.AddQueryParameter(param.name, param.value);
-                }
+                restRequest
+                    .AddQueryParameter("amount", request.Amount.Value)
+                    .AddQueryParameter("unit", request.Unit);
+            }
+            else
+            {
+                restRequest
+                    .AddQueryParameter("amount", 100)
+                    .AddQueryParameter("unit", "g");
             }
 
-            var response = await _restClient.GetAsync(request);
+            var response = await _restClient.GetAsync(restRequest);
 
             if (response is null)
                 return Result
                     .CreateWithError<FoodDetails>(EvaluationTypes.Failed, "Unable to fetch results.");
 
-            var data = converter(response.Content);
+            var food = IngredientJsonToFoodDetails(response.Content);
+
+            if (!IsUnitAllowed(food, request.Unit))
+                return Result
+                    .CreateWithError<FoodDetails>(EvaluationTypes.InvalidParameters, "Cannot convert to unit.");
+
+            if (food is null)
+                return Result
+                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, "Unable to fetch results.");
+
+            return Result.Create(food);
+        }
+
+        private async Task<Result<FoodDetails>> GetDetailsForProduct(Int32 id, ServingRequest request)
+        {
+            var restRequest = new RestRequest(NutritionApiRoutes.GetProduct(id));
+
+            var response = await _restClient.GetAsync(restRequest);
+
+            if (response is null)
+                return Result
+                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, "Unable to fetch results.");
+
+            var data = ProductJsonToFoodDetails(response.Content);
 
             if (data is null)
                 return Result
                     .CreateWithError<FoodDetails>(EvaluationTypes.Failed, "Unable to fetch results.");
 
-            return Result.Create(data);
+            return CaculateFoodNutrition(data, request);
+        }
+
+        private Result<FoodDetails> CaculateFoodNutrition(FoodDetails food, ServingRequest request)
+        {
+            if (request != null && request.Unit != null && request.Amount.HasValue)
+                return Result.Create(food);
+
+            if (!IsUnitAllowed(food, request.Unit))
+                return Result
+                    .CreateWithError<FoodDetails>(EvaluationTypes.InvalidParameters, "Cannot convert to unit.");
+
+            var servingSize = food.ServingInformation.Size;
+            var servingUnit = food.ServingInformation.Unit;
+
+            return Result.Create(food.CalculateNutrition(servingSize, servingUnit, request.Amount.Value, request.Unit));
+        }
+
+        private FoodDetails ProductJsonToFoodDetails(string json)
+        {
+            var definition = new
+            {
+                Id = 1,
+                Title = "",
+                Description = "",
+                Image = "",
+                Servings = new
+                {
+                    Number = 1.0,
+                    Size = 1.0,
+                    Unit = ""
+                },
+                Nutrition = new
+                {
+                    Nutrients = new[]
+                    {
+                        new {
+                            Name = "",
+                            Amount = 1.0,
+                            Unit = ""
+                        }
+                    }
+                }
+            };
+
+            var food = JsonConvert.DeserializeAnonymousType(json, definition);
+
+            return new FoodDetails
+            {
+                FoodId = GetProductId(food.Id),
+                FoodName = food.Title,
+                ImagePath = food.Image,
+                Nutrition = new Nutrition
+                {
+                    Nutrients = food.Nutrition.Nutrients
+                    .Select(x => new Nutrient
+                    {
+                        Amount = x.Amount,
+                        Name = x.Name,
+                        Unit = x.Unit,
+                    })
+                    .ToList(),
+                },
+                ServingInformation = new Serving
+                {
+                    Number = food.Servings.Number,
+                    Unit = food.Servings.Unit,
+                    Size = food.Servings.Size
+                },
+                PossibleUnits = food.Servings.Unit == "g" || food.Servings.Unit == "oz"
+                    ? new List<string> { "g", "oz" }
+                    : new List<string> { food.Servings.Unit }
+            };
+        }
+
+        private FoodDetails IngredientJsonToFoodDetails(string json)
+        {
+            var definition = new
+            {
+                Id = 1,
+                Name = "",
+                Image = "",
+                Amount = 1.0,
+                UnitShort = "",
+                Nutrition = new
+                {
+                    Nutrients = new[]
+                    {
+                        new {
+                            Name = "",
+                            Amount = 1.0,
+                            Unit = ""
+                        }
+                    },
+                },
+                PossibleUnits = new[] { "" }
+            };
+
+            var food = JsonConvert.DeserializeAnonymousType(json, definition);
+
+            return new FoodDetails
+            {
+                FoodId = GetProductId(food.Id),
+                FoodName = food.Name,
+                ImagePath = food.Image,
+                Nutrition = new Nutrition
+                {
+                    Nutrients = food.Nutrition.Nutrients
+                    .Select(x => new Nutrient
+                    {
+                        Amount = x.Amount,
+                        Name = x.Name,
+                        Unit = x.Unit,
+                    })
+                    .ToList(),
+                },
+                ServingInformation = new Serving
+                {
+                    Number = 1,
+                    Unit = food.UnitShort,
+                    Size = food.Amount
+                },
+                PossibleUnits = food.PossibleUnits.ToList()
+            };
         }
 
         private String GetProductId(Int32 id) => "P" + id;
@@ -337,5 +357,8 @@ namespace DietAssistant.Business
 
         private Boolean IsProduct(String id) =>
             id.Substring(0, 1) == "P";
+
+        private Boolean IsUnitAllowed(FoodDetails food, string unit)
+            => food.PossibleUnits.Contains(unit);
     }
 }

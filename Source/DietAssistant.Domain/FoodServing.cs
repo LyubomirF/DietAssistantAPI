@@ -2,12 +2,11 @@
 
 namespace DietAssistant.Domain
 {
-    //RERUN THE MIGRATION
     public class FoodServing
     {
         public Int32 FoodServingId { get; set; }
 
-        public Int32 FoodId { get; set; }
+        public String FoodId { get; set; }
 
         public Meal Meal { get; set; }
 

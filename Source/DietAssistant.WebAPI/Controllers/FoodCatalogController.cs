@@ -23,7 +23,7 @@ namespace DietAssistant.WebAPI.Controllers
         // 758951 - cucumber
         // 186891 - chicken
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetFoodByIdAsync([FromRoute] Int32 id)
-            => await _foodCatalog.GetFoodByIdAsync(id).ToActionResult(this);
+        public async Task<IActionResult> GetFoodByIdAsync([FromRoute] String id, [FromQuery] ServingRequest request)
+            => await _foodCatalog.GetFoodByIdAsync(id, request).ToActionResult(this);
     }
 }

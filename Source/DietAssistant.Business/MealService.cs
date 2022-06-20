@@ -1,4 +1,5 @@
 ﻿using DietAssistant.Business.Contracts;
+using DietAssistant.Business.Contracts.Models.FoodCatalog.Requests;
 using DietAssistant.Business.Contracts.Models.FoodCatalog.Responses;
 using DietAssistant.Business.Contracts.Models.FoodServing.Responses;
 using DietAssistant.Business.Contracts.Models.MealFoodLog.Requests;
@@ -28,7 +29,7 @@ namespace DietAssistant.Business
 
         public async Task<Result<MealLogResponse>> GetMealById(Int32 id)
         {
-            int? currentUserId = _userResolverService.GetCurrentUserId();
+            var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
                 return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
@@ -39,8 +40,17 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, "Meal was not found.");
 
-            IEnumerable<int>? foodIds = meal.FoodServings.Select(x => x.FoodId);
-            IReadOnlyCollection<FoodDetails>? foods = (await _foodCatalogService.GetFoodsAsync(foodIds)).Data;
+            var req = meal.FoodServings.Select(x => new ManyFoodDetailsRequest
+            {
+                FoodId = x.FoodId,
+                Serving = new ServingRequest
+                {
+                    Unit = x.ServingUnit,
+                    Amount = x.ServingSize
+                }
+            });
+
+            var foods = (await _foodCatalogService.GetFoodsAsync(req)).Data;
 
             if (foods is null)
                 return Result
@@ -51,13 +61,22 @@ namespace DietAssistant.Business
 
         public async Task<Result<MealLogResponse>> LogMealAsync(LogMealRequest request)
         {
-            int? currentUserId = _userResolverService.GetCurrentUserId();
+            var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
                 return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
 
-            IReadOnlyCollection<FoodDetails>? foods = (await _foodCatalogService
-                .GetFoodsAsync(request.FoodServings.Select(x => x.FoodId))).Data;
+            var req = request.FoodServings.Select(x => new ManyFoodDetailsRequest
+            {
+                FoodId = x.FoodId,
+                Serving = new ServingRequest
+                {
+                    Unit = x.Unit,
+                    Amount = x.ServingSize
+                }
+            });
+
+            var foods = (await _foodCatalogService.GetFoodsAsync(req)).Data;
 
             if (foods is null)
                 return Result
@@ -65,7 +84,7 @@ namespace DietAssistant.Business
 
             var lastMeal = await _mealRepository.GetLastMealAsync(request.Date, currentUserId.Value);
 
-            List<FoodServing>? foodServings = request.FoodServings
+            var foodServings = request.FoodServings
                     .Select(x => new FoodServing
                     {
                         FoodId = x.FoodId,
@@ -73,6 +92,7 @@ namespace DietAssistant.Business
                         ServingUnit = x.Unit,
                         NumberOfServings = x.NumberOfServings
                     }).ToList();
+
             var newMeal = new Meal
             {
                 UserId = currentUserId.Value
@@ -98,7 +118,7 @@ namespace DietAssistant.Business
 
         public async Task<Result<MealLogResponse>> UpdateMealLogAsync(Int32 id, UpdateMealLogRequest request)
         {
-            int? currentUserId = _userResolverService.GetCurrentUserId();
+            var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
                 return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
@@ -109,8 +129,16 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, "Meal was not found.");
 
-            IEnumerable<int>? foodIds = request.FoodServings.Select(x => x.FoodId);
-            IReadOnlyCollection<FoodDetails>? foods = (await _foodCatalogService.GetFoodsAsync(foodIds)).Data;
+            var req = request.FoodServings.Select(x => new ManyFoodDetailsRequest
+            {
+                FoodId = x.FoodId,
+                Serving = new ServingRequest
+                {
+                    Unit = x.Unit,
+                    Amount = x.ServingSize
+                }
+            });
+            var foods = (await _foodCatalogService.GetFoodsAsync(req)).Data;
 
             if (foods is null)
                 return Result
@@ -118,7 +146,7 @@ namespace DietAssistant.Business
 
             meal.FoodServings.Clear();
 
-            List<FoodServing>? foodServings = request.FoodServings
+            var foodServings = request.FoodServings
                     .Select(x => new FoodServing
                     {
                         FoodId = x.FoodId,
@@ -137,7 +165,7 @@ namespace DietAssistant.Business
 
         public async Task<Result<Int32>> DeleteMealAsync(Int32 id)
         {
-            int? currentUserId = _userResolverService.GetCurrentUserId();
+            var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
                 return Result.CreateWithError<Int32>(EvaluationTypes.Unauthorized, "Unauthorized.");
@@ -172,10 +200,22 @@ namespace DietAssistant.Business
                     FoodName = x.Food.FoodName,
                     Nutrition = new LoggedNutrition
                     {
-                        Carbs = x.Food.CalculateNutrientTotal(x.FoodServing, DietAssistantConstants.Carbohydrates),
-                        Fat = x.Food.CalculateNutrientTotal(x.FoodServing, DietAssistantConstants.Fat),
-                        Protein = x.Food.CalculateNutrientTotal(x.FoodServing, DietAssistantConstants.Protein),
-                        Calories = x.Food.CalculateNutrientTotal(x.FoodServing, DietAssistantConstants.Calories),
+                        Carbs = NutritionHelper.CalculateNutrientAmount(
+                            x.Food.Nutrition,
+                            DietAssistantConstants.Carbohydrates,
+                            x.FoodServing.NumberOfServings),
+                        Fat = NutritionHelper.CalculateNutrientAmount(
+                            x.Food.Nutrition,
+                            DietAssistantConstants.Fat,
+                            x.FoodServing.NumberOfServings),
+                        Protein = NutritionHelper.CalculateNutrientAmount(
+                            x.Food.Nutrition,
+                            DietAssistantConstants.Protein,
+                            x.FoodServing.NumberOfServings),
+                        Calories = NutritionHelper.CalculateNutrientAmount(
+                            x.Food.Nutrition,
+                            DietAssistantConstants.Calories,
+                            x.FoodServing.NumberOfServings),
                     }
                 })
                 .ToList();

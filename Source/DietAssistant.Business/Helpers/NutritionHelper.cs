@@ -1,22 +1,46 @@
 ﻿using DietAssistant.Business.Contracts.Models.FoodCatalog.Responses;
-using DietAssistant.Domain;
 
 namespace DietAssistant.Business.Helpers
 {
     public static class NutritionHelper
     {
-        public static Double CalculateNutrientTotal(this FoodDetails food, FoodServing foodServing, string nutrientName)
+        public static FoodDetails CalculateNutrition(
+            this FoodDetails food,
+            Double defaultServingSize,
+            String defaultUnit, 
+            Double targetAmount,
+            String targetUnit)
         {
-            var servingSize = foodServing.ServingSize;
-            var numberOfServings = foodServing.NumberOfServings;
+            var convertedTargetAmount = targetAmount;
 
-            var foodDefaultServing = food.ServingInformation.Size;
+            if(defaultUnit == "g" && targetUnit == "oz")
+            {
+                convertedTargetAmount = targetAmount * 28.35;
+            }
 
-            var nutrientAmountPerServing = food.Nutrition.Nutrients.Single(x => x.Name == nutrientName).Amount;
+            if (defaultUnit == "oz" && targetUnit == "g")
+            {
+                convertedTargetAmount = targetAmount / 28.35;
+            }
 
-            var ratio = (servingSize * numberOfServings) / foodDefaultServing;
+            foreach (var nutrient in food.Nutrition.Nutrients)
+            {
+                nutrient.Amount = CalculateNutrientAmount(defaultServingSize, nutrient.Amount, convertedTargetAmount);
+            }
 
-            return Math.Round(ratio * nutrientAmountPerServing, 2);
+            food.ServingInformation = new Serving
+            {
+                Number = 1,
+                Size = targetAmount,
+                Unit = targetUnit
+            };
+
+            return food;
+        }
+
+        public static Double CalculateNutrientAmount(Nutrition nutrition, String nutrientName, Double numberOfServings)
+        {
+            return nutrition.Nutrients.Single(x => x.Name == nutrientName).Amount * numberOfServings;
         }
 
         public static Double CalculateNutrientAmount(

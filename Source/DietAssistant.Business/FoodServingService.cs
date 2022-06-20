@@ -1,4 +1,5 @@
 ﻿using DietAssistant.Business.Contracts;
+using DietAssistant.Business.Contracts.Models.FoodCatalog.Requests;
 using DietAssistant.Business.Contracts.Models.FoodCatalog.Responses;
 using DietAssistant.Business.Contracts.Models.FoodServing.Requests;
 using DietAssistant.Business.Contracts.Models.FoodServing.Responses;
@@ -32,7 +33,13 @@ namespace DietAssistant.Business
             if (!currentUserId.HasValue)
                 return Result.CreateWithError<FoodServingResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
 
-            var food = (await _foodCatalogService.GetFoodByIdAsync(request.FoodId)).Data;
+            var food = await _foodCatalogService.GetFoodByIdAsync(
+                request.FoodId,
+                new ServingRequest
+                {
+                    Amount = request.ServingSize,
+                    Unit = request.Unit
+                });
 
             if (food is null)
                 return Result
@@ -87,7 +94,11 @@ namespace DietAssistant.Business
 
             await _mealRepository.SaveEntityAsync(meal);
 
-            var food = (await _foodCatalogService.GetFoodByIdAsync(foodServing.FoodId)).Data;
+            var food = (await _foodCatalogService.GetFoodByIdAsync(foodServing.FoodId, new ServingRequest
+            {
+                Amount = request.ServingSize,
+                Unit = request.Unit
+            })).Data;
 
             return Result.Create(GetFoodLogResponse(meal, food, foodServing));
         }
@@ -132,10 +143,22 @@ namespace DietAssistant.Business
                     FoodName = food.FoodName,
                     Nutrition = new LoggedNutrition
                     {
-                        Calories = food.CalculateNutrientTotal(foodServing, DietAssistantConstants.Calories),
-                        Carbs = food.CalculateNutrientTotal(foodServing, DietAssistantConstants.Carbohydrates),
-                        Fat = food.CalculateNutrientTotal(foodServing, DietAssistantConstants.Fat),
-                        Protein = food.CalculateNutrientTotal(foodServing, DietAssistantConstants.Protein),
+                        Calories = NutritionHelper.CalculateNutrientAmount(
+                            food.Nutrition,
+                            DietAssistantConstants.Calories,
+                            foodServing.NumberOfServings),
+                        Carbs = NutritionHelper.CalculateNutrientAmount(
+                            food.Nutrition,
+                            DietAssistantConstants.Carbohydrates,
+                            foodServing.NumberOfServings),
+                        Fat = NutritionHelper.CalculateNutrientAmount(
+                            food.Nutrition,
+                            DietAssistantConstants.Fat,
+                            foodServing.NumberOfServings),
+                        Protein = NutritionHelper.CalculateNutrientAmount(
+                            food.Nutrition,
+                            DietAssistantConstants.Protein,
+                            foodServing.NumberOfServings)
                     }
                 }
             };
