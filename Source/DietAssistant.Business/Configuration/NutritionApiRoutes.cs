@@ -10,6 +10,6 @@
 
         public static string GetProduct(int id) => $"food/products/{id}";
 
-        public static string GetIngredient(int id) => $"food/ingredients/{id}"; 
+        public static string GetIngredient(int id) => $"food/ingredients/{id}/information"; 
     }
 }

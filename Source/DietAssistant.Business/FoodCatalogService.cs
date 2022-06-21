@@ -198,7 +198,7 @@ namespace DietAssistant.Business
 
             var food = IngredientJsonToFoodDetails(response.Content);
 
-            if (!IsUnitAllowed(food, request.Unit))
+            if (request != null && request.Unit != null && request.Amount.HasValue && !IsUnitAllowed(food, request.Unit))
                 return Result
                     .CreateWithError<FoodDetails>(EvaluationTypes.InvalidParameters, "Cannot convert to unit.");
 
@@ -335,7 +335,7 @@ namespace DietAssistant.Business
 
             return new FoodDetails
             {
-                FoodId = GetProductId(food.Id),
+                FoodId = GetWholeFoodId(food.Id),
                 FoodName = food.Name,
                 ImagePath = food.Image,
                 Nutrition = new Nutrition
