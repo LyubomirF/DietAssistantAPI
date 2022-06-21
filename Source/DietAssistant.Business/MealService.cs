@@ -32,13 +32,13 @@ namespace DietAssistant.Business
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
-                return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
+                return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
             var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
 
             if (meal is null)
                 return Result
-                    .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, "Meal was not found.");
+                    .CreateWithError<MealLogResponse>(EvaluationTypes.NotFound, ResponseMessages.MealNotFound(id));
 
             var req = meal.FoodServings.Select(x => new ManyFoodDetailsRequest
             {
@@ -64,7 +64,7 @@ namespace DietAssistant.Business
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
-                return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
+                return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
             var req = request.FoodServings
                 .Select(x => new ManyFoodDetailsRequest
@@ -122,7 +122,7 @@ namespace DietAssistant.Business
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
-                return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, "Unauthorized.");
+                return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
             var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
 
@@ -169,17 +169,17 @@ namespace DietAssistant.Business
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
-                return Result.CreateWithError<Int32>(EvaluationTypes.Unauthorized, "Unauthorized.");
+                return Result.CreateWithError<Int32>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
             var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
 
             if (meal is null)
-                return Result.CreateWithError<Int32>(EvaluationTypes.NotFound, "Meal was not found.");
+                return Result.CreateWithError<Int32>(EvaluationTypes.NotFound, ResponseMessages.MealNotFound(id));
 
             int result = await _mealRepository.DeleteMealAsync(meal);
 
             return result <= 0
-                ? Result.CreateWithError<Int32>(EvaluationTypes.Failed, "Couldn't delete meal.")
+                ? Result.CreateWithError<Int32>(EvaluationTypes.Failed, ResponseMessages.CannotDeleteMeal)
                 : Result.Create(id);
         }
 

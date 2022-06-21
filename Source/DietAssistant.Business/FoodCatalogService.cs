@@ -30,15 +30,15 @@ namespace DietAssistant.Business
 
             var response = await _restClient.GetAsync(request);
 
-            if (response is null)
+            if (!response.IsSuccessful)
                 return Result
-                    .CreateWithError<FoodSearch>(EvaluationTypes.Failed, "Unable to fetch results.");
+                    .CreateWithError<FoodSearch>(EvaluationTypes.InvalidParameters, response.ErrorMessage);
 
             var data = JsonToFoodSearch(response.Content, requestModel);
 
             if (data is null)
                 return Result
-                    .CreateWithError<FoodSearch>(EvaluationTypes.Failed, "Unable to fetch results.");
+                    .CreateWithError<FoodSearch>(EvaluationTypes.Failed, ResponseMessages.ActionFailed);
 
             return Result.Create(data);
         }
@@ -63,7 +63,7 @@ namespace DietAssistant.Business
 
                 if (foodResponse.IsFailure())
                     return Result
-                        .CreateWithError<IReadOnlyCollection<FoodDetails>>(EvaluationTypes.NotFound, "Food with id was not found");
+                        .CreateWithErrors<IReadOnlyCollection<FoodDetails>>(EvaluationTypes.NotFound, foodResponse.Errors);
 
                 result.Add(foodResponse.Data);
             }
@@ -123,19 +123,21 @@ namespace DietAssistant.Business
 
             var foods = JsonConvert.DeserializeAnonymousType(json, definition);
 
-            return new FoodSearch
-            {
-                Foods = foods.Products.Select(x => new Food
+            return foods is null
+                ? null
+                : new FoodSearch
                 {
-                    FoodId = GetProductId(x.Id),
-                    FoodName = x.Title,
-                    ImagePath = x.Image
-                })
+                    Foods = foods.Products.Select(x => new Food
+                    {
+                        FoodId = GetProductId(x.Id),
+                        FoodName = x.Title,
+                        ImagePath = x.Image
+                    })
                 .ToList(),
-                Page = foods.Offset,
-                PageSize = foods.Number,
-                TotalFoods = foods.TotalProducts,
-            };
+                    Page = foods.Offset,
+                    PageSize = foods.Number,
+                    TotalFoods = foods.TotalProducts,
+                };
         }
 
         private FoodSearch DeserializeJsonIngredients(string json)
@@ -158,19 +160,21 @@ namespace DietAssistant.Business
 
             var foods = JsonConvert.DeserializeAnonymousType(json, definition);
 
-            return new FoodSearch
-            {
-                Foods = foods.Results.Select(x => new Food
+            return foods is null
+                ? null
+                : new FoodSearch
                 {
-                    FoodId = GetWholeFoodId(x.Id),
-                    FoodName = x.Name,
-                    ImagePath = x.Image
-                })
+                    Foods = foods.Results.Select(x => new Food
+                    {
+                        FoodId = GetWholeFoodId(x.Id),
+                        FoodName = x.Name,
+                        ImagePath = x.Image
+                    })
                 .ToList(),
-                Page = foods.Offset,
-                PageSize = foods.Number,
-                TotalFoods = foods.TotalResults,
-            };
+                    Page = foods.Offset,
+                    PageSize = foods.Number,
+                    TotalFoods = foods.TotalResults,
+                };
         }
 
         private async Task<Result<FoodDetails>> GetDetailsForWholeFood(Int32 id, ServingRequest request)
@@ -192,19 +196,19 @@ namespace DietAssistant.Business
 
             var response = await _restClient.GetAsync(restRequest);
 
-            if (response is null)
+            if (!response.IsSuccessful)
                 return Result
-                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, "Unable to fetch results.");
+                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, response.ErrorMessage);
 
             var food = IngredientJsonToFoodDetails(response.Content);
 
             if (request != null && request.Unit != null && request.Amount.HasValue && !IsUnitAllowed(food, request.Unit))
                 return Result
-                    .CreateWithError<FoodDetails>(EvaluationTypes.InvalidParameters, "Cannot convert to unit.");
+                    .CreateWithError<FoodDetails>(EvaluationTypes.InvalidParameters, ResponseMessages.CannotConvertToUnit);
 
             if (food is null)
                 return Result
-                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, "Unable to fetch results.");
+                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, ResponseMessages.ActionFailed);
 
             return Result.Create(food);
         }
@@ -215,15 +219,15 @@ namespace DietAssistant.Business
 
             var response = await _restClient.GetAsync(restRequest);
 
-            if (response is null)
+            if (!response.IsSuccessful)
                 return Result
-                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, "Unable to fetch results.");
+                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, response.ErrorMessage);
 
             var data = ProductJsonToFoodDetails(response.Content);
 
             if (data is null)
                 return Result
-                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, "Unable to fetch results.");
+                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, ResponseMessages.ActionFailed);
 
             return CaculateFoodNutrition(data, request);
         }
@@ -276,14 +280,16 @@ namespace DietAssistant.Business
                     NullValueHandling = NullValueHandling.Include
                 });
 
-            return new FoodDetails
-            {
-                FoodId = GetProductId(food.Id),
-                FoodName = food.Title,
-                ImagePath = food.Image,
-                Nutrition = new Nutrition
+            return food is null
+                ? null
+                : new FoodDetails
                 {
-                    Nutrients = food.Nutrition.Nutrients
+                    FoodId = GetProductId(food.Id),
+                    FoodName = food.Title,
+                    ImagePath = food.Image,
+                    Nutrition = new Nutrition
+                    {
+                        Nutrients = food.Nutrition.Nutrients
                     .Select(x => new Nutrient
                     {
                         Amount = x.Amount.HasValue ? x.Amount.Value : 0,
@@ -291,17 +297,17 @@ namespace DietAssistant.Business
                         Unit = x.Unit,
                     })
                     .ToList(),
-                },
-                ServingInformation = new Serving
-                {
-                    Number = food.Servings.Number.HasValue ? food.Servings.Number.Value : 0,
-                    Unit = food.Servings.Unit,
-                    Size = food.Servings.Size.HasValue ? food.Servings.Size.Value : 0
-                },
-                PossibleUnits = food.Servings.Unit == "g" || food.Servings.Unit == "oz"
+                    },
+                    ServingInformation = new Serving
+                    {
+                        Number = food.Servings.Number.HasValue ? food.Servings.Number.Value : 0,
+                        Unit = food.Servings.Unit,
+                        Size = food.Servings.Size.HasValue ? food.Servings.Size.Value : 0
+                    },
+                    PossibleUnits = food.Servings.Unit == "g" || food.Servings.Unit == "oz"
                     ? new List<string> { "g", "oz" }
                     : new List<string> { food.Servings.Unit }
-            };
+                };
         }
 
         private FoodDetails IngredientJsonToFoodDetails(string json)
@@ -333,14 +339,16 @@ namespace DietAssistant.Business
                     NullValueHandling = NullValueHandling.Include
                 });
 
-            return new FoodDetails
-            {
-                FoodId = GetWholeFoodId(food.Id),
-                FoodName = food.Name,
-                ImagePath = food.Image,
-                Nutrition = new Nutrition
+            return food is null
+                ? null
+                : new FoodDetails
                 {
-                    Nutrients = food.Nutrition.Nutrients
+                    FoodId = GetWholeFoodId(food.Id),
+                    FoodName = food.Name,
+                    ImagePath = food.Image,
+                    Nutrition = new Nutrition
+                    {
+                        Nutrients = food.Nutrition.Nutrients
                     .Select(x => new Nutrient
                     {
                         Amount = x.Amount.HasValue ? x.Amount.Value : 0,
@@ -348,15 +356,15 @@ namespace DietAssistant.Business
                         Unit = x.Unit,
                     })
                     .ToList(),
-                },
-                ServingInformation = new Serving
-                {
-                    Number = 1,
-                    Unit = food.UnitShort,
-                    Size = food.Amount
-                },
-                PossibleUnits = food.PossibleUnits.ToList()
-            };
+                    },
+                    ServingInformation = new Serving
+                    {
+                        Number = 1,
+                        Unit = food.UnitShort,
+                        Size = food.Amount
+                    },
+                    PossibleUnits = food.PossibleUnits.ToList()
+                };
         }
 
         private String GetProductId(Int32 id) => "P" + id;
