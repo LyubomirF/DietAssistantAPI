@@ -5,6 +5,7 @@ using DietAssistant.Business.Contracts.Models.FoodServing.Responses;
 using DietAssistant.Business.Contracts.Models.MealFoodLog.Requests;
 using DietAssistant.Business.Contracts.Models.MealFoodLog.Responses;
 using DietAssistant.Business.Helpers;
+using DietAssistant.Business.Validation;
 using DietAssistant.Common;
 using DietAssistant.DataAccess.Contracts;
 using DietAssistant.Domain;
@@ -29,6 +30,9 @@ namespace DietAssistant.Business
 
         public async Task<Result<MealLogResponse>> GetMealById(Int32 id)
         {
+            if (!Validator.Validate(id, out string error))
+                return Result.CreateWithError<MealLogResponse>(EvaluationTypes.InvalidParameters, error);
+
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
@@ -61,6 +65,9 @@ namespace DietAssistant.Business
 
         public async Task<Result<MealLogResponse>> LogMealAsync(LogMealRequest request)
         {
+            if (!Validator.Validate(request, out List<String> errors))
+                return Result.CreateWithErrors<MealLogResponse>(EvaluationTypes.InvalidParameters, errors);
+
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
@@ -119,6 +126,9 @@ namespace DietAssistant.Business
 
         public async Task<Result<MealLogResponse>> UpdateMealLogAsync(Int32 id, UpdateMealLogRequest request)
         {
+            if (!Validator.Validate(id, request, out List<String> errors))
+                return Result.CreateWithErrors<MealLogResponse>(EvaluationTypes.InvalidParameters, errors);
+
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
@@ -166,6 +176,9 @@ namespace DietAssistant.Business
 
         public async Task<Result<Int32>> DeleteMealAsync(Int32 id)
         {
+            if (Validator.Validate(id, out String error))
+                return Result.CreateWithError<Int32>(EvaluationTypes.InvalidParameters, error);
+
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)

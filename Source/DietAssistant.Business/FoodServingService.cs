@@ -4,6 +4,7 @@ using DietAssistant.Business.Contracts.Models.FoodCatalog.Responses;
 using DietAssistant.Business.Contracts.Models.FoodServing.Requests;
 using DietAssistant.Business.Contracts.Models.FoodServing.Responses;
 using DietAssistant.Business.Helpers;
+using DietAssistant.Business.Validation;
 using DietAssistant.Common;
 using DietAssistant.DataAccess.Contracts;
 using DietAssistant.Domain;
@@ -28,6 +29,9 @@ namespace DietAssistant.Business
 
         public async Task<Result<FoodServingResponse>> LogFoodServingAsync(Int32 mealId, LogUpdateFoodServingRequest request)
         {
+            if (!Validator.Validate(mealId, request, out List<String> errors))
+                return Result.CreateWithErrors<FoodServingResponse>(EvaluationTypes.InvalidParameters, errors);
+
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
@@ -71,6 +75,9 @@ namespace DietAssistant.Business
             Int32 foodServingId,
             LogUpdateFoodServingRequest request)
         {
+            if (!Validator.Validate(mealId, foodServingId, request, out List<String> errors))
+                return Result.CreateWithErrors<FoodServingResponse>(EvaluationTypes.InvalidParameters, errors);
+
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
@@ -110,6 +117,9 @@ namespace DietAssistant.Business
 
         public async Task<Result<Int32>> DeleteFoodServingLogAsync(Int32 mealId, Int32 foodServingId)
         {
+            if (!Validator.Validate(out List<String> errros, mealId, foodServingId))
+                return Result.CreateWithErrors<Int32>(EvaluationTypes.InvalidParameters, errros);
+
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
