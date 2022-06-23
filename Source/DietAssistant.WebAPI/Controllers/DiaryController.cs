@@ -21,6 +21,10 @@ namespace DietAssistant.WebAPI.Controllers
             _foodServingService = foodServingService;
         }
 
+        [HttpGet("meals")]
+        public async Task<IActionResult> GetMealsOnDate([FromQuery] DateTime? date)
+            => await _mealService.GetMealsOnDateAsync(date).ToActionResult(this);
+
         [HttpGet("meal/{mealId}")]
         public async Task<IActionResult> GetMealByIdAsync([FromRoute] Int32 mealId)
             => await _mealService.GetMealById(mealId).ToActionResult(this);

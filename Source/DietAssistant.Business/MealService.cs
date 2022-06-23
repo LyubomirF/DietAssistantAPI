@@ -28,6 +28,24 @@ namespace DietAssistant.Business
             _mealRepository = mealRepository;
         }
 
+        public async Task<Result<IEnumerable<MealLogResponse>>> GetMealsOnDateAsync(DateTime? dateRequest)
+        {
+            if (!dateRequest.HasValue)
+            {
+                dateRequest = DateTime.UtcNow;
+            }
+
+            var currentUserId = _userResolverService.GetCurrentUserId();
+
+            if (!currentUserId.HasValue)
+                return Result
+                    .CreateWithError<IEnumerable<MealLogResponse>>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
+
+            var meals = await _mealRepository.GetMealsForDayAsync(dateRequest.Value, currentUserId.Value);
+
+            return await GetMealLogResponses(meals);
+        }
+
         public async Task<Result<MealLogResponse>> GetMealById(Int32 id)
         {
             if (!Validator.Validate(id, out string error))
@@ -253,6 +271,35 @@ namespace DietAssistant.Business
                     .Select(x => x.Nutrition.Protein)
                     .Aggregate((x, y) => x + y),
             };
+        }
+
+
+        private async Task<Result<IEnumerable<MealLogResponse>>> GetMealLogResponses(IEnumerable<Meal> meals)
+        {
+            var result = new List<MealLogResponse>();
+
+            foreach (var meal in meals)
+            {
+                var req = meal.FoodServings.Select(x => new ManyFoodDetailsRequest
+                {
+                    FoodId = x.FoodId,
+                    Serving = new ServingRequest
+                    {
+                        Unit = x.ServingUnit,
+                        Amount = x.ServingSize
+                    }
+                });
+
+                var foodsResponse = await _foodCatalogService.GetFoodsAsync(req);
+
+                if (foodsResponse.IsFailure())
+                    return Result
+                        .CreateWithErrors<IEnumerable<MealLogResponse>>(foodsResponse.EvaluationResult, foodsResponse.Errors);
+
+                result.Add(GetMealLogResponse(meal.FoodServings, foodsResponse.Data, meal));
+            }
+
+            return Result.Create(result.AsEnumerable());
         }
     }
 }

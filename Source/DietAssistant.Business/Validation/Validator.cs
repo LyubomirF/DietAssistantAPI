@@ -42,9 +42,9 @@ namespace DietAssistant.Business.Validation
                 errors.Add("FoodId is required.");
             }
 
-            if (request.ServingSize < 0)
+            if (request.ServingSize <= 0)
             {
-                errors.Add("Serving size cannot be less than 0.");
+                errors.Add("Serving size cannot be less than or equal 0.");
             }
 
             if (String.IsNullOrEmpty(request.Unit))
@@ -52,9 +52,9 @@ namespace DietAssistant.Business.Validation
                 errors.Add("Unit is required.");
             }
 
-            if(request.NumberOfServings < 0)
+            if(request.NumberOfServings <= 0)
             {
-                errors.Add("Number of servings cannot be less than 0.");
+                errors.Add("Number of servings cannot be less than or equal 0.");
             }
 
             return errors.Count <= 0;

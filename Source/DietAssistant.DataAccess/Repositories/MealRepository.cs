@@ -26,7 +26,7 @@ namespace DietAssistant.DataAccess.Repositories
         public async Task<IEnumerable<Meal>> GetMealsForDayAsync(DateTime dateTime, Int32 userId)
             => await _dbContext.Meals
                 .Include(x => x.FoodServings)
-                .Where(x => x.EatenOn == dateTime && x.UserId == userId)
+                .Where(x => x.EatenOn.Date == dateTime.Date && x.UserId == userId)
                 .OrderBy(x => x.Order)
                 .ToListAsync();
 

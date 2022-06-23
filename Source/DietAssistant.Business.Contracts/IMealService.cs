@@ -6,6 +6,8 @@ namespace DietAssistant.Business.Contracts
 {
     public interface IMealService
     {
+        Task<Result<IEnumerable<MealLogResponse>>> GetMealsOnDateAsync(DateTime? dateRequest);
+
         Task<Result<MealLogResponse>> GetMealById(Int32 id);
 
         Task<Result<MealLogResponse>> LogMealAsync(LogMealRequest request);
