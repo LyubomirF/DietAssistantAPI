@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DietAssistant.DataAccess.DbContext.Migrations
 {
-    public partial class AddDietPlanningEntities : Migration
+    public partial class AddDietPlanningEntites : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -30,42 +30,24 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DayPlans",
-                columns: table => new
-                {
-                    DayPlanId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    DayOfWeek = table.Column<int>(type: "int", nullable: false),
-                    DietPlanId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DayPlans", x => x.DayPlanId);
-                    table.ForeignKey(
-                        name: "FK_DayPlans_DietPlans_DietPlanId",
-                        column: x => x.DietPlanId,
-                        principalTable: "DietPlans",
-                        principalColumn: "DietPlanId");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "MealsPlan",
                 columns: table => new
                 {
                     MealPlanId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     MealPlanName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DayOfWeek = table.Column<int>(type: "int", nullable: false),
                     Time = table.Column<TimeSpan>(type: "time", nullable: false),
-                    DayPlanId = table.Column<int>(type: "int", nullable: true)
+                    DietPlanId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MealsPlan", x => x.MealPlanId);
                     table.ForeignKey(
-                        name: "FK_MealsPlan_DayPlans_DayPlanId",
-                        column: x => x.DayPlanId,
-                        principalTable: "DayPlans",
-                        principalColumn: "DayPlanId");
+                        name: "FK_MealsPlan_DietPlans_DietPlanId",
+                        column: x => x.DietPlanId,
+                        principalTable: "DietPlans",
+                        principalColumn: "DietPlanId");
                 });
 
             migrationBuilder.CreateTable(
@@ -90,11 +72,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_DayPlans_DietPlanId",
-                table: "DayPlans",
-                column: "DietPlanId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_DietPlans_UserId",
                 table: "DietPlans",
                 column: "UserId");
@@ -105,9 +82,9 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                 column: "MealPlanId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MealsPlan_DayPlanId",
+                name: "IX_MealsPlan_DietPlanId",
                 table: "MealsPlan",
-                column: "DayPlanId");
+                column: "DietPlanId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -117,9 +94,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
 
             migrationBuilder.DropTable(
                 name: "MealsPlan");
-
-            migrationBuilder.DropTable(
-                name: "DayPlans");
 
             migrationBuilder.DropTable(
                 name: "DietPlans");

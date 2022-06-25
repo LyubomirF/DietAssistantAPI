@@ -23,9 +23,7 @@ namespace DietAssistant.DataAccess
 
         public DbSet<FoodServing> FoodServings { get; set; }
 
-        public DbSet<DietPlan> DietPlans { get; set; }
-
-        public DbSet<DayPlan> DayPlans { get; set; }
+        public DbSet<DietPlan> DietPlans { get; set; } 
 
         public DbSet<MealPlan> MealsPlan { get; set; } 
 
@@ -88,13 +86,6 @@ namespace DietAssistant.DataAccess
                 options
                     .HasOne(x => x.User)
                     .WithMany(x => x.DietPlans);
-
-                options.HasMany(x => x.DayPlans).WithOne();
-            });
-
-            builder.Entity<DayPlan>(options => 
-            {
-                options.HasKey(x => x.DayPlanId);
 
                 options.HasMany(x => x.MealPlans).WithOne();
             });

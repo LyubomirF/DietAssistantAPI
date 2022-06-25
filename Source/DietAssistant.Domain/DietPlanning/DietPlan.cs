@@ -10,6 +10,6 @@
 
         public Int32 UserId { get; set; }
 
-        public ICollection<DayPlan> DayPlans { get; set; }
+        public ICollection<MealPlan> MealPlans { get; set; }
     }
 }

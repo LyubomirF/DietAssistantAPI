@@ -22,27 +22,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("DietAssistant.Domain.DietPlanning.DayPlan", b =>
-                {
-                    b.Property<int>("DayPlanId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DayPlanId"), 1L, 1);
-
-                    b.Property<int>("DayOfWeek")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DietPlanId")
-                        .HasColumnType("int");
-
-                    b.HasKey("DayPlanId");
-
-                    b.HasIndex("DietPlanId");
-
-                    b.ToTable("DayPlans");
-                });
-
             modelBuilder.Entity("DietAssistant.Domain.DietPlanning.DietPlan", b =>
                 {
                     b.Property<int>("DietPlanId")
@@ -102,7 +81,10 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MealPlanId"), 1L, 1);
 
-                    b.Property<int?>("DayPlanId")
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DietPlanId")
                         .HasColumnType("int");
 
                     b.Property<string>("MealPlanName")
@@ -114,7 +96,7 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
 
                     b.HasKey("MealPlanId");
 
-                    b.HasIndex("DayPlanId");
+                    b.HasIndex("DietPlanId");
 
                     b.ToTable("MealsPlan");
                 });
@@ -256,13 +238,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                     b.ToTable("UsersStats");
                 });
 
-            modelBuilder.Entity("DietAssistant.Domain.DietPlanning.DayPlan", b =>
-                {
-                    b.HasOne("DietAssistant.Domain.DietPlanning.DietPlan", null)
-                        .WithMany("DayPlans")
-                        .HasForeignKey("DietPlanId");
-                });
-
             modelBuilder.Entity("DietAssistant.Domain.DietPlanning.DietPlan", b =>
                 {
                     b.HasOne("DietAssistant.Domain.User", "User")
@@ -283,9 +258,9 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
 
             modelBuilder.Entity("DietAssistant.Domain.DietPlanning.MealPlan", b =>
                 {
-                    b.HasOne("DietAssistant.Domain.DietPlanning.DayPlan", null)
+                    b.HasOne("DietAssistant.Domain.DietPlanning.DietPlan", null)
                         .WithMany("MealPlans")
-                        .HasForeignKey("DayPlanId");
+                        .HasForeignKey("DietPlanId");
                 });
 
             modelBuilder.Entity("DietAssistant.Domain.FoodServing", b =>
@@ -332,14 +307,9 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DietAssistant.Domain.DietPlanning.DayPlan", b =>
-                {
-                    b.Navigation("MealPlans");
-                });
-
             modelBuilder.Entity("DietAssistant.Domain.DietPlanning.DietPlan", b =>
                 {
-                    b.Navigation("DayPlans");
+                    b.Navigation("MealPlans");
                 });
 
             modelBuilder.Entity("DietAssistant.Domain.DietPlanning.MealPlan", b =>
