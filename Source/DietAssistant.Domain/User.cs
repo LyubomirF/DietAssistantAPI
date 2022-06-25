@@ -1,5 +1,7 @@
 ﻿#pragma warning disable CS8618
 
+using DietAssistant.Domain.DietPlanning;
+
 namespace DietAssistant.Domain
 {
     public class User
@@ -17,5 +19,7 @@ namespace DietAssistant.Domain
         public ICollection<ProgressLog> ProgressLogs { get; set; }
 
         public ICollection<Meal> Meals { get; set; }
+
+        public ICollection<DietPlan> DietPlans { get; set; } 
     }
 }

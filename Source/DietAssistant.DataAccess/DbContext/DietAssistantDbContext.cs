@@ -1,4 +1,5 @@
 ﻿using DietAssistant.Domain;
+using DietAssistant.Domain.DietPlanning;
 using Microsoft.EntityFrameworkCore;
 
 #pragma warning disable CS8618
@@ -22,6 +23,14 @@ namespace DietAssistant.DataAccess
 
         public DbSet<FoodServing> FoodServings { get; set; }
 
+        public DbSet<DietPlan> DietPlans { get; set; }
+
+        public DbSet<DayPlan> DayPlans { get; set; }
+
+        public DbSet<MealPlan> MealsPlan { get; set; } 
+
+        public DbSet<FoodPlan> FoodPlans { get; set; }
+
         #endregion
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -41,6 +50,11 @@ namespace DietAssistant.DataAccess
                 options
                     .HasMany(x => x.ProgressLogs)
                     .WithOne(x => x.User);
+
+                options
+                    .HasMany(x => x.DietPlans)
+                    .WithOne(x => x.User);
+
             });
 
             builder.Entity<UserStats>(options => 
@@ -64,6 +78,37 @@ namespace DietAssistant.DataAccess
                 options
                     .HasMany(x => x.FoodServings)
                     .WithOne(x => x.Meal);
+            });
+
+
+            builder.Entity<DietPlan>(options =>
+            {
+                options.HasKey(x => x.DietPlanId);
+
+                options
+                    .HasOne(x => x.User)
+                    .WithMany(x => x.DietPlans);
+
+                options.HasMany(x => x.DayPlans).WithOne();
+            });
+
+            builder.Entity<DayPlan>(options => 
+            {
+                options.HasKey(x => x.DayPlanId);
+
+                options.HasMany(x => x.MealPlans).WithOne();
+            });
+
+            builder.Entity<MealPlan>(options => 
+            {
+                options.HasKey(x => x.MealPlanId);
+
+                options.HasMany(x => x.FoodPlans).WithOne();
+            });
+
+            builder.Entity<FoodPlan>(options =>
+            {
+                options.HasKey(x => x.FoodPlanId);
             });
         }
     }
