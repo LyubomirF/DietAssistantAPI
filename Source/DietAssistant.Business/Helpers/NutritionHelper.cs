@@ -57,5 +57,17 @@ namespace DietAssistant.Business.Helpers
 
             return Math.Round(ratio * defaultNutrientAmount, 2);
         }
+
+        public static Double GetNutrientAmount(this FoodDetails food, String nutrientName)
+        {
+            var nutrition = food.Nutrition;
+
+            var nutrientInfo = nutrition.Nutrients.SingleOrDefault(x => x.Name == nutrientName);
+
+            if (nutrientInfo is null)
+                return 0;
+
+            return nutrientInfo.Amount;
+        }
     }
 }
