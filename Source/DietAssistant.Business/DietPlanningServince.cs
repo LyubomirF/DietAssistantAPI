@@ -5,6 +5,7 @@ using DietAssistant.Business.Contracts.Models.DietPlanning.Responses.Macros;
 using DietAssistant.Business.Contracts.Models.FoodCatalog.Requests;
 using DietAssistant.Business.Contracts.Models.FoodCatalog.Responses;
 using DietAssistant.Business.Helpers;
+using DietAssistant.Business.Mappers;
 using DietAssistant.Common;
 using DietAssistant.DataAccess.Contracts;
 using DietAssistant.Domain.DietPlanning;
@@ -81,7 +82,7 @@ namespace DietAssistant.Business
 
             var foods = foodsResponse.Data;
 
-            var response = GetResponse(dietPlan, foods);
+            var response = dietPlan.ToResponse(foods);
 
             return Result.Create(response);
         }
@@ -179,7 +180,7 @@ namespace DietAssistant.Business
 
             await _dietPlanRepository.SaveEntityAsync(dietPlan);
 
-            var response = GetResponse(dietPlan, newMealPlan, foodsResponse.Data);
+            var response = dietPlan.ToResponse(newMealPlan, foodsResponse.Data);
 
             return Result.Create(response);
         }
@@ -234,7 +235,7 @@ namespace DietAssistant.Business
 
             await _dietPlanRepository.SaveEntityAsync(dietPlan);
 
-            var response = GetResponse(dietPlan, mealPlan, foodsResponse.Data);
+            var response = dietPlan.ToResponse(mealPlan, foodsResponse.Data);
 
             return Result.Create(response);
         }
@@ -305,7 +306,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithErrors<MealPlanResponse>(foodsResponse.EvaluationResult, foodsResponse.Errors);
 
-            var response = GetResponse(dietPlan, mealPlan, foodsResponse.Data);
+            var response = dietPlan.ToResponse(mealPlan, foodsResponse.Data);
 
             return Result.Create(response);
         }
@@ -361,7 +362,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithErrors<MealPlanResponse>(foodsResponse.EvaluationResult, foodsResponse.Errors);
 
-            var response = GetResponse(dietPlan, mealPlan, foodsResponse.Data);
+            var response = dietPlan.ToResponse(mealPlan, foodsResponse.Data);
 
             return Result.Create(response);
         }
@@ -399,63 +400,21 @@ namespace DietAssistant.Business
                 : Result.Create(foodPlan.FoodPlanId);
         }
 
-        private MealPlanResponse GetResponse(DietPlan dietPlan, MealPlan meal, IReadOnlyCollection<FoodDetails> foods)
-        {
-            return new MealPlanResponse
-            {
-                DietPlanId = dietPlan.DietPlanId,
-                MealPlanId = meal.MealPlanId,
-                DayOfWeek = meal.DayOfWeek.ToString(),
-                Time = meal.Time.ToString(@"hh\:mm"),
-                FoodPlan = meal.FoodPlans
-                    .Zip(foods, (fp, f) => new { FoodPlan = fp, Food = f })
-                    .Select(x =>
-                        new FoodPlanResponse
-                        {
-                            FoodPlanId = x.FoodPlan.FoodPlanId,
-                            FoodId = x.Food.FoodId,
-                            FoodName = x.Food.FoodName,
-                            ServingSize = x.FoodPlan.ServingSize,
-                            Unit = x.FoodPlan.Unit
-                        })
-                    .ToList()
-            };
-        }
-
-        private DietPlanResponse GetResponse(DietPlan dietPlan, IReadOnlyCollection<FoodDetails> foods)
-        {
-            return new DietPlanResponse
-            {
-                DietPlanId = dietPlan.DietPlanId,
-                Name = dietPlan.PlanName,
-                DayPlans = dietPlan.MealPlans
-                    .GroupBy(x => x.DayOfWeek, (day, mealPlans) =>
-                        new DayPlanResponse
-                        {
-                            DayOfWeek = day.ToString(),
-                            Meals = mealPlans
-                                .Select(mealPlan =>
-                                    new SimpleMealPlanResponse
-                                    {
-                                        MealPlanId = mealPlan.MealPlanId,
-                                        MealName = mealPlan.MealPlanName,
-                                        Time = mealPlan.Time.ToString(@"hh\:mm"),
-                                        FoodPlan = mealPlan.FoodPlans
-                                            .Select(fp =>
-                                                new FoodPlanResponse
-                                                {
-                                                    FoodPlanId = fp.FoodPlanId,
-                                                    FoodId = fp.FoodId,
-                                                    FoodName = foods.FirstOrDefault(x => x.FoodId == fp.FoodId)?.FoodName,
-                                                    ServingSize = fp.ServingSize,
-                                                    Unit = fp.Unit
-                                                }).ToList()
-                                    }).ToList()
-                        }).ToList()
-            };
-        }
-
         private async Task<Result<DietPlanMacrosBreakdownResponse>> GetResponse(DietPlan dietPlan)
+        {
+            var macrosPerDayResult = await GetTotalMacrosPerDay(dietPlan);
+
+            if (macrosPerDayResult.IsFailure())
+                return Result.CreateWithErrors<DietPlanMacrosBreakdownResponse>(macrosPerDayResult.EvaluationResult, macrosPerDayResult.Errors);
+
+            var macrosPerDay = macrosPerDayResult.Data;
+
+            var response = dietPlan.ToResponse(macrosPerDay);
+
+            return Result.Create(response);
+        }
+
+        private async Task<Result<List<DayTotalMacros>>> GetTotalMacrosPerDay(DietPlan dietPlan)
         {
             var dayMealPlans = dietPlan.MealPlans
                 .GroupBy(mealPlan => mealPlan.DayOfWeek, (day, mealPlans) => new { Day = day, MealPlans = mealPlans });
@@ -489,11 +448,11 @@ namespace DietAssistant.Business
 
                         if (foodResponse.IsFailure())
                             return Result
-                                .CreateWithErrors<DietPlanMacrosBreakdownResponse>(foodResponse.EvaluationResult, foodResponse.Errors);
+                                .CreateWithErrors<List<DayTotalMacros>>(foodResponse.EvaluationResult, foodResponse.Errors);
 
                         var food = foodResponse.Data;
 
-                        var foodCalories = food.GetNutrientAmount( DietAssistantConstants.Carbohydrates);
+                        var foodCalories = food.GetNutrientAmount(DietAssistantConstants.Carbohydrates);
                         var foodCarbs = food.GetNutrientAmount(DietAssistantConstants.Carbohydrates);
                         var foodProtein = food.GetNutrientAmount(DietAssistantConstants.Protein);
                         var foodFat = food.GetNutrientAmount(DietAssistantConstants.Fat);
@@ -509,42 +468,7 @@ namespace DietAssistant.Business
                 result.Add(dayTotalMacros);
             }
 
-            var response = new DietPlanMacrosBreakdownResponse
-            {
-                DietPlanId = dietPlan.DietPlanId,
-                DietPlanName = dietPlan.PlanName,
-                DaysMacros = result
-                    .Select(dtm => new
-                    {
-                        DayMacros = dtm,
-                        TotalCaloriesPerDay = dtm.MealPlansMacros.Select(x => x.TotalCalories).Aggregate((c1, c2) => c1 + c2),
-                        TotalProteinPerDay = dtm.MealPlansMacros.Select(x => x.TotalProtein).Aggregate((p1, p2) => p1 + p2),
-                        TotalCarbsPerDay = dtm.MealPlansMacros.Select(x => x.TotalCarbs).Aggregate((c1, c2) => c1 + c2),
-                        TotalFatPerDay = dtm.MealPlansMacros.Select(x => x.TotalFat).Aggregate((f1, f2) => f1 + f2)
-                    })
-                    .Select(x => new DayMacros
-                    {
-                        Day = x.DayMacros.Day.ToString(),
-                        MealPlansMacros = x.DayMacros.MealPlansMacros
-                            .Select(mptm => new MealPlanMacros 
-                            {
-                                MealPlanId = mptm.MealPlanId,
-                                MealPlanName = mptm.MealPlanName,
-                                PercentageOfTotalCalories = (mptm.TotalCalories / x.TotalCaloriesPerDay) * 100,
-                                PercentageOfTotalProtein = (mptm.TotalProtein / x.TotalProteinPerDay) * 100,
-                                PercentageOfTotalCarbs = (mptm.TotalCarbs / x.TotalCarbsPerDay) * 100,
-                                PercantageOfTotalFat = (mptm.TotalFat / x.TotalFatPerDay) * 100
-                            })
-                            .ToList(),
-                        TotalCalories = x.TotalCaloriesPerDay,
-                        TotalProtein = x.TotalProteinPerDay,
-                        TotalCarbs = x.TotalCarbsPerDay,
-                        TotalFat = x.TotalFatPerDay
-                    })
-                    .ToList()
-            };
-
-            return Result.Create(response);
+            return  Result.Create(result);
         }
     }
 }
