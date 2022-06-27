@@ -25,6 +25,8 @@ namespace DietAssistant.WebAPI.Extentions
             services.AddTransient<IMealService, MealService>();
             services.AddTransient<IFoodServingService, FoodServingService>();
             services.AddTransient<IFoodCatalogService, FoodCatalogService>();
+            services.AddTransient<IDietPlanningService, IDietPlanningService>();
+
             services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddTransient<IUserResolverService, UserResolverService>();
         }

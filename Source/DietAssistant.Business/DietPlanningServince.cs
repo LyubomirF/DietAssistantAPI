@@ -9,7 +9,7 @@ using DietAssistant.Domain.DietPlanning;
 
 namespace DietAssistant.Business
 {
-    public class DietPlanningServince
+    public class DietPlanningServince : IDietPlanningService
     {
         private readonly IUserResolverService _userResolverService;
         private readonly IDietPlanRepository _dietPlanRepository;
@@ -87,10 +87,28 @@ namespace DietAssistant.Business
                 : Result.Create(newDietPlan.DietPlanId);
         }
 
-        //Delete diet plan
+        public async Task<Result<Int32>> DeleteDietPlanAsync(Int32 dietPlanId)
+        {
+            var currentUserId = _userResolverService.GetCurrentUserId();
+
+            if (!currentUserId.HasValue)
+                return Result.CreateWithError<Int32>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
+
+            var dietPlan = await _dietPlanRepository.GetDietPlanAsync(dietPlanId, currentUserId.Value);
+
+            if (dietPlan is null)
+                return Result
+                    .CreateWithError<Int32>(EvaluationTypes.NotFound, "Diet plan was not found.");
+
+            var result = await _dietPlanRepository.DeleteDietPlanAsync(dietPlan);
+
+            return result <= 0
+                ? Result.CreateWithError<Int32>(EvaluationTypes.Failed, "Could not delete food plan.")
+                : Result.Create(dietPlan.DietPlanId);
+        }
 
         //Meals
-        public async Task<Result<MealPlanResponse>> AddMealToPlanAsync(Int32 dietPlanId, AddUpdateMealRequest request)
+        public async Task<Result<MealPlanResponse>> AddMealPlanAsync(Int32 dietPlanId, AddUpdateMealRequest request)
         {
             var currentUserId = _userResolverService.GetCurrentUserId();
 
@@ -119,7 +137,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithErrors<MealPlanResponse>(foodsResponse.EvaluationResult, foodsResponse.Errors);
 
-            var newMeal = new MealPlan
+            var newMealPlan = new MealPlan
             {
                 MealPlanName = request.MealName,
                 DayOfWeek = request.Day,
@@ -135,16 +153,16 @@ namespace DietAssistant.Business
                     .ToList(),
             };
 
-            dietPlan.MealPlans.Add(newMeal);
+            dietPlan.MealPlans.Add(newMealPlan);
 
             await _dietPlanRepository.SaveEntityAsync(dietPlan);
 
-            var response = GetResponse(dietPlan, newMeal, foodsResponse.Data);
+            var response = GetResponse(dietPlan, newMealPlan, foodsResponse.Data);
 
             return Result.Create(response);
         }
 
-        public async Task<Result<MealPlanResponse>> UpdateMealAsync(Int32 dietPlanId, Int32 mealId, AddUpdateMealRequest request)
+        public async Task<Result<MealPlanResponse>> UpdateMealPlanAsync(Int32 dietPlanId, Int32 mealPlanId, AddUpdateMealRequest request)
         {
             var currentUserId = _userResolverService.GetCurrentUserId();
 
@@ -173,17 +191,17 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithErrors<MealPlanResponse>(foodsResponse.EvaluationResult, foodsResponse.Errors);
 
-            var meal = dietPlan.MealPlans.SingleOrDefault(x => x.MealPlanId == mealId);
+            var mealPlan = dietPlan.MealPlans.SingleOrDefault(x => x.MealPlanId == mealPlanId);
 
-            if (meal is null)
+            if (mealPlan is null)
                 return Result
-                    .CreateWithError<MealPlanResponse>(EvaluationTypes.NotFound, "Meal was not found.");
+                    .CreateWithError<MealPlanResponse>(EvaluationTypes.NotFound, "Meal plan was not found.");
 
-            meal.FoodPlans.Clear();
+            mealPlan.FoodPlans.Clear();
 
             foreach (var foodPlan in request.FoodPlanRequests)
             {
-                meal.FoodPlans.Add(
+                mealPlan.FoodPlans.Add(
                     new FoodPlan
                     {
                         FoodId = foodPlan.FoodId,
@@ -194,14 +212,38 @@ namespace DietAssistant.Business
 
             await _dietPlanRepository.SaveEntityAsync(dietPlan);
 
-            var response = GetResponse(dietPlan, meal, foodsResponse.Data);
+            var response = GetResponse(dietPlan, mealPlan, foodsResponse.Data);
 
             return Result.Create(response);
         }
-        // Delete meal plan from diet plan ...
+       
+        public async Task<Result<Int32>> DeleteMealPlanAsync(Int32 dietPlanId, Int32 mealPlanId)
+        {
+            var currentUserId = _userResolverService.GetCurrentUserId();
+
+            if (!currentUserId.HasValue)
+                return Result.CreateWithError<Int32>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
+
+            var dietPlan = await _dietPlanRepository.GetDietPlanAsync(dietPlanId, currentUserId.Value);
+
+            if (dietPlan is null)
+                return Result
+                    .CreateWithError<Int32>(EvaluationTypes.NotFound, "Diet plan was not found.");
+
+            var mealPlan = dietPlan.MealPlans.SingleOrDefault(x => x.MealPlanId == mealPlanId);
+
+            if (mealPlan is null)
+                return Result.CreateWithError<Int32>(EvaluationTypes.NotFound, "Meal plan was not found.");
+
+            var result = await _dietPlanRepository.DeleteMealPlanAsync(dietPlan, mealPlan);
+
+            return result <= 0
+                ? Result.CreateWithError<Int32>(EvaluationTypes.Failed, "Could not delete food plan.")
+                : Result.Create(mealPlan.MealPlanId);
+        }
 
         //Food plan
-        public async Task<Result<MealPlanResponse>> AddFoodPlanToMeal(Int32 dietPlanId, Int32 mealId, FoodPlanRequest request)
+        public async Task<Result<MealPlanResponse>> AddFoodPlanToMeal(Int32 dietPlanId, Int32 mealPlanId, FoodPlanRequest request)
         {
             var currentUserId = _userResolverService.GetCurrentUserId();
 
@@ -214,7 +256,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<MealPlanResponse>(EvaluationTypes.NotFound, "Diet plan was not found.");
 
-            var mealPlan = dietPlan.MealPlans.SingleOrDefault(x => x.MealPlanId == mealId);
+            var mealPlan = dietPlan.MealPlans.SingleOrDefault(x => x.MealPlanId == mealPlanId);
 
             if (mealPlan is null)
                 return Result.CreateWithError<MealPlanResponse>(EvaluationTypes.NotFound, "Meal plan was not found.");
@@ -248,7 +290,7 @@ namespace DietAssistant.Business
 
         public async Task<Result<MealPlanResponse>> UpdateFoodPlan(
             Int32 dietPlanId,
-            Int32 mealId,
+            Int32 mealPlanId,
             Int32 foodPlanId,
             FoodPlanRequest request)
         {
@@ -263,7 +305,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<MealPlanResponse>(EvaluationTypes.NotFound, "Diet plan was not found.");
 
-            var mealPlan = dietPlan.MealPlans.SingleOrDefault(x => x.MealPlanId == mealId);
+            var mealPlan = dietPlan.MealPlans.SingleOrDefault(x => x.MealPlanId == mealPlanId);
 
             if (mealPlan is null)
                 return Result.CreateWithError<MealPlanResponse>(EvaluationTypes.NotFound, "Meal plan was not found.");
@@ -302,7 +344,38 @@ namespace DietAssistant.Business
             return Result.Create(response);
         }
 
-        //Delete food plan
+        public async Task<Result<Int32>> DeleteFoodPlan(Int32 dietPlanId, Int32 mealPlanId, Int32 foodPlanId)
+        {
+            var currentUserId = _userResolverService.GetCurrentUserId();
+
+            if (!currentUserId.HasValue)
+                return Result.CreateWithError<Int32>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
+
+            var dietPlan = await _dietPlanRepository.GetDietPlanAsync(dietPlanId, currentUserId.Value);
+
+            if (dietPlan is null)
+                return Result
+                    .CreateWithError<Int32>(EvaluationTypes.NotFound, "Diet plan was not found.");
+
+            var mealPlan = dietPlan.MealPlans.SingleOrDefault(x => x.MealPlanId == mealPlanId);
+
+            if (mealPlan is null)
+                return Result.CreateWithError<Int32>(EvaluationTypes.NotFound, "Meal plan was not found.");
+
+
+            var foodPlan = mealPlan.FoodPlans.SingleOrDefault(x => x.FoodPlanId == foodPlanId);
+
+            if (foodPlan is null)
+                return Result.CreateWithError<Int32>(EvaluationTypes.NotFound, "Food plan was not found");
+
+            mealPlan.FoodPlans.Remove(foodPlan);
+
+            var result = await _dietPlanRepository.DeleteFoodPlanAsync(dietPlan, mealPlan, foodPlan);
+
+            return result <= 0
+                ? Result.CreateWithError<Int32>(EvaluationTypes.Failed, "Could not delete food plan.")
+                : Result.Create(foodPlan.FoodPlanId);
+        }
 
         private MealPlanResponse GetResponse(DietPlan dietPlan, MealPlan meal, IReadOnlyCollection<FoodDetails> foods)
         {

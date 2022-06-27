@@ -207,7 +207,7 @@ namespace DietAssistant.Business
             if (meal is null)
                 return Result.CreateWithError<Int32>(EvaluationTypes.NotFound, ResponseMessages.MealNotFound(id));
 
-            int result = await _mealRepository.DeleteMealAsync(meal);
+            var result = await _mealRepository.DeleteMealAsync(meal);
 
             return result <= 0
                 ? Result.CreateWithError<Int32>(EvaluationTypes.Failed, ResponseMessages.CannotDeleteMeal)
