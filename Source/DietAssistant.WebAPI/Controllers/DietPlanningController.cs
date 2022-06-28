@@ -38,7 +38,7 @@ namespace DietAssistant.WebAPI.Controllers
         public async Task<IActionResult> AddMealPlanAsync([FromRoute] Int32 dietPlanId, [FromBody] AddUpdateMealRequest request)
             => await _dietPlanningService.AddMealPlanAsync(dietPlanId, request).ToActionResult(this);
 
-        [HttpPut(MealPlans)]
+        [HttpPut(MealPlan)]
         public async Task<IActionResult> AddMealPlanAsync(
             [FromRoute] Int32 dietPlanId,
             [FromRoute] Int32 mealPlanId,
@@ -56,7 +56,7 @@ namespace DietAssistant.WebAPI.Controllers
             [FromBody] FoodPlanRequest request)
             => await _dietPlanningService.AddFoodPlanAsync(dietPlanId, mealPlanId, request).ToActionResult(this);
 
-        [HttpPost(FoodPlan)]
+        [HttpPut(FoodPlan)]
         public async Task<IActionResult> UpdateFoodPlanAsync(
             [FromRoute] Int32 dietPlanId,
             [FromRoute] Int32 mealPlanId,

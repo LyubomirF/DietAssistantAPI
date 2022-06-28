@@ -28,7 +28,7 @@
 
         public const String DietPlan = "{dietPlanId}";
 
-        public const String Macros = "{dietPlan}/macros";
+        public const String Macros = "{dietPlanId}/macros";
 
         public const String MealPlans = "{dietPlanId}/meal-plans";
 
