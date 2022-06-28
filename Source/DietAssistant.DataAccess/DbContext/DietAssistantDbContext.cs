@@ -75,7 +75,8 @@ namespace DietAssistant.DataAccess
 
                 options
                     .HasMany(x => x.FoodServings)
-                    .WithOne(x => x.Meal);
+                    .WithOne(x => x.Meal)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
 
@@ -87,14 +88,20 @@ namespace DietAssistant.DataAccess
                     .HasOne(x => x.User)
                     .WithMany(x => x.DietPlans);
 
-                options.HasMany(x => x.MealPlans).WithOne();
+                options
+                    .HasMany(x => x.MealPlans)
+                    .WithOne()
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             builder.Entity<MealPlan>(options => 
             {
                 options.HasKey(x => x.MealPlanId);
 
-                options.HasMany(x => x.FoodPlans).WithOne();
+                options
+                    .HasMany(x => x.FoodPlans)
+                    .WithOne()
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             builder.Entity<FoodPlan>(options =>
