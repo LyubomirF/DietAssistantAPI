@@ -11,6 +11,8 @@ using DietAssistant.Domain;
 
 namespace DietAssistant.Business
 {
+    using static Validator;
+
     public class FoodServingService : IFoodServingService
     {
         private readonly IUserResolverService _userResolverService;
@@ -29,7 +31,7 @@ namespace DietAssistant.Business
 
         public async Task<Result<FoodServingResponse>> LogFoodServingAsync(Int32 mealId, LogUpdateFoodServingRequest request)
         {
-            if (!Validator.Validate(mealId, request, out List<String> errors))
+            if (!Validate(mealId, request, out List<String> errors))
                 return Result.CreateWithErrors<FoodServingResponse>(EvaluationTypes.InvalidParameters, errors);
 
             var currentUserId = _userResolverService.GetCurrentUserId();
@@ -75,7 +77,7 @@ namespace DietAssistant.Business
             Int32 foodServingId,
             LogUpdateFoodServingRequest request)
         {
-            if (!Validator.Validate(mealId, foodServingId, request, out List<String> errors))
+            if (!Validate(mealId, foodServingId, request, out List<String> errors))
                 return Result.CreateWithErrors<FoodServingResponse>(EvaluationTypes.InvalidParameters, errors);
 
             var currentUserId = _userResolverService.GetCurrentUserId();
@@ -117,7 +119,7 @@ namespace DietAssistant.Business
 
         public async Task<Result<Int32>> DeleteFoodServingLogAsync(Int32 mealId, Int32 foodServingId)
         {
-            if (!Validator.Validate(out List<String> errros, mealId, foodServingId))
+            if (!Validate(out List<String> errros, mealId, foodServingId))
                 return Result.CreateWithErrors<Int32>(EvaluationTypes.InvalidParameters, errros);
 
             var currentUserId = _userResolverService.GetCurrentUserId();

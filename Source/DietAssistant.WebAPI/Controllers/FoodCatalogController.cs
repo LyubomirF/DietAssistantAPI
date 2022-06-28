@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DietAssistant.WebAPI.Controllers
 {
-    [Route("api/food")]
+    using static FoodCatalogRoutes;
+
+    [Route("api/" + Foods)]
     [ApiController]
     public class FoodCatalogController : ControllerBase
     {
@@ -16,13 +18,13 @@ namespace DietAssistant.WebAPI.Controllers
             _foodCatalog = foodCatalog;
         }
 
-        [HttpGet("search")]
+        [HttpGet(SearchFood)]
         public async Task<IActionResult> SearchFoodsAsync([FromQuery] SearchFoodRequest request)
             => await _foodCatalog.SearchFoodsAsync(request).ToActionResult(this);
 
         // 758951 - cucumber
         // 186891 - chicken
-        [HttpGet("{id}")]
+        [HttpGet(Food)]
         public async Task<IActionResult> GetFoodByIdAsync([FromRoute] String id, [FromQuery] ServingRequest request)
             => await _foodCatalog.GetFoodByIdAsync(id, request).ToActionResult(this);
     }

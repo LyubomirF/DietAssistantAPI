@@ -12,6 +12,8 @@ using DietAssistant.Domain;
 
 namespace DietAssistant.Business
 {
+    using static Validator;
+
     public class MealService : IMealService
     {
         private readonly IUserResolverService _userResolverService;
@@ -48,7 +50,7 @@ namespace DietAssistant.Business
 
         public async Task<Result<MealLogResponse>> GetMealById(Int32 id)
         {
-            if (!Validator.Validate(id, out string error))
+            if (!Validate(id, out string error))
                 return Result.CreateWithError<MealLogResponse>(EvaluationTypes.InvalidParameters, error);
 
             var currentUserId = _userResolverService.GetCurrentUserId();
@@ -83,7 +85,7 @@ namespace DietAssistant.Business
 
         public async Task<Result<MealLogResponse>> LogMealAsync(LogMealRequest request)
         {
-            if (!Validator.Validate(request, out List<String> errors))
+            if (!Validate(request, out List<String> errors))
                 return Result.CreateWithErrors<MealLogResponse>(EvaluationTypes.InvalidParameters, errors);
 
             var currentUserId = _userResolverService.GetCurrentUserId();
@@ -144,7 +146,7 @@ namespace DietAssistant.Business
 
         public async Task<Result<MealLogResponse>> UpdateMealLogAsync(Int32 id, UpdateMealLogRequest request)
         {
-            if (!Validator.Validate(id, request, out List<String> errors))
+            if (!Validate(id, request, out List<String> errors))
                 return Result.CreateWithErrors<MealLogResponse>(EvaluationTypes.InvalidParameters, errors);
 
             var currentUserId = _userResolverService.GetCurrentUserId();
@@ -194,7 +196,7 @@ namespace DietAssistant.Business
 
         public async Task<Result<Int32>> DeleteMealAsync(Int32 id)
         {
-            if (Validator.Validate(id, out String error))
+            if (!Validate(id, out String error))
                 return Result.CreateWithError<Int32>(EvaluationTypes.InvalidParameters, error);
 
             var currentUserId = _userResolverService.GetCurrentUserId();
@@ -272,7 +274,6 @@ namespace DietAssistant.Business
                     .Aggregate((x, y) => x + y),
             };
         }
-
 
         private async Task<Result<IEnumerable<MealLogResponse>>> GetMealLogResponses(IEnumerable<Meal> meals)
         {

@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DietAssistant.WebAPI.Controllers
 {
-    [Route("api/auth")]
+    using static AuthRoutes;
+
+    [Route("api/" + Auth)]
     [ApiController]
     [Authorize]
     public class AuthenticationController : ControllerBase
@@ -16,12 +18,12 @@ namespace DietAssistant.WebAPI.Controllers
         public AuthenticationController(IAuthenticationService authenticationService)
             => _authenticationService = authenticationService;
 
-        [HttpPost("login")]
+        [HttpPost(Login)]
         [AllowAnonymous]
         public async Task<IActionResult> AuthenticateWithPasswordAsync([FromBody] AuthenticationRequest request)
             => await _authenticationService.AuthenticateWithPasswordAsync(request).ToActionResult(this);
 
-        [HttpPost("register")]
+        [HttpPost(Register)]
         [AllowAnonymous]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
             => await _authenticationService.RegisterAsync(request).ToActionResult(this);
