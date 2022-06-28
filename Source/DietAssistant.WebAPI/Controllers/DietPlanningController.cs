@@ -27,8 +27,8 @@ namespace DietAssistant.WebAPI.Controllers
             => await _dietPlanningService.GetDietPlanAsync(dietPlanId).ToActionResult(this);
 
         [HttpPost]
-        public async Task<IActionResult> CreateDietPlanAsync([FromBody] String planName)
-            => await _dietPlanningService.CreateDietPlanAsync(planName).ToActionResult(this);
+        public async Task<IActionResult> CreateDietPlanAsync([FromBody] CreateDietPlanRequest request)
+            => await _dietPlanningService.CreateDietPlanAsync(request).ToActionResult(this);
 
         [HttpDelete(DietPlan)]
         public async Task<IActionResult> DeleteDietPlanAsync([FromRoute] Int32 dietPlanId)
@@ -39,7 +39,7 @@ namespace DietAssistant.WebAPI.Controllers
             => await _dietPlanningService.AddMealPlanAsync(dietPlanId, request).ToActionResult(this);
 
         [HttpPut(MealPlan)]
-        public async Task<IActionResult> AddMealPlanAsync(
+        public async Task<IActionResult> UpdateMealPlanAsync(
             [FromRoute] Int32 dietPlanId,
             [FromRoute] Int32 mealPlanId,
             [FromBody] AddUpdateMealRequest request)
