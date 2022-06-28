@@ -89,16 +89,16 @@ namespace DietAssistant.Business.Mappers
                             {
                                 MealPlanId = mptm.MealPlanId,
                                 MealPlanName = mptm.MealPlanName,
-                                PercentageOfTotalCalories = (mptm.TotalCalories / x.TotalCaloriesPerDay) * 100,
-                                PercentageOfTotalProtein = (mptm.TotalProtein / x.TotalProteinPerDay) * 100,
-                                PercentageOfTotalCarbs = (mptm.TotalCarbs / x.TotalCarbsPerDay) * 100,
-                                PercantageOfTotalFat = (mptm.TotalFat / x.TotalFatPerDay) * 100
+                                PercentageOfTotalCalories = Math.Round((mptm.TotalCalories / x.TotalCaloriesPerDay) * 100, 2),
+                                PercentageOfTotalProtein = Math.Round((mptm.TotalProtein / x.TotalProteinPerDay) * 100, 2),
+                                PercentageOfTotalCarbs = Math.Round((mptm.TotalCarbs / x.TotalCarbsPerDay) * 100, 2),
+                                PercantageOfTotalFat = Math.Round((mptm.TotalFat / x.TotalFatPerDay) * 100, 2)
                             })
                             .ToList(),
-                        TotalCalories = x.TotalCaloriesPerDay,
-                        TotalProtein = x.TotalProteinPerDay,
-                        TotalCarbs = x.TotalCarbsPerDay,
-                        TotalFat = x.TotalFatPerDay
+                        TotalCalories = Math.Round(x.TotalCaloriesPerDay, 2),
+                        TotalProtein = Math.Round(x.TotalProteinPerDay, 2),
+                        TotalCarbs = Math.Round(x.TotalCarbsPerDay, 2),
+                        TotalFat = Math.Round(x.TotalFatPerDay, 2)
                     })
                     .ToList()
             };
