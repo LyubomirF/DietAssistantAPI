@@ -16,7 +16,7 @@ namespace DietAssistant.DataAccess.Repositories
             => _dbContext.DietPlans
                 .Include(x => x.MealPlans)
                     .ThenInclude(x => x.FoodPlans)
-                .Where(x => x.UserId == dietPlanId)
+                .Where(x => x.UserId == userId)
                 .SingleOrDefaultAsync(x => x.DietPlanId == dietPlanId);
 
         Task<DietPlan> IRepository<DietPlan>.GetByIdAsync(Int32 id)
