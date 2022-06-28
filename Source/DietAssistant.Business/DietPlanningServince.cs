@@ -3,7 +3,6 @@ using DietAssistant.Business.Contracts.Models.DietPlanning.Requests;
 using DietAssistant.Business.Contracts.Models.DietPlanning.Responses;
 using DietAssistant.Business.Contracts.Models.DietPlanning.Responses.Macros;
 using DietAssistant.Business.Contracts.Models.FoodCatalog.Requests;
-using DietAssistant.Business.Contracts.Models.FoodCatalog.Responses;
 using DietAssistant.Business.Helpers;
 using DietAssistant.Business.Mappers;
 using DietAssistant.Common;
@@ -28,7 +27,7 @@ namespace DietAssistant.Business
             _foodCatalogService = foodCatalogService;
         }
 
-        public async Task<Result<DietPlanMacrosBreakdownResponse>> GetDietPlanMacros(Int32 dietPlanId)
+        public async Task<Result<DietPlanMacrosBreakdownResponse>> GetDietPlanMacrosAsync(Int32 dietPlanId)
         {
             var currentUserId = _userResolverService.GetCurrentUserId();
 
@@ -87,7 +86,7 @@ namespace DietAssistant.Business
             return Result.Create(response);
         }
 
-        public async Task<Result<Int32>> CreateDietPlan(String planName)
+        public async Task<Result<Int32>> CreateDietPlanAsync(String planName)
         {
             if (String.IsNullOrEmpty(planName))
                 return Result.CreateWithError<Int32>(EvaluationTypes.InvalidParameters, "The name of the diet plan is required.");
@@ -266,7 +265,7 @@ namespace DietAssistant.Business
         }
 
         //Food plan
-        public async Task<Result<MealPlanResponse>> AddFoodPlanToMeal(Int32 dietPlanId, Int32 mealPlanId, FoodPlanRequest request)
+        public async Task<Result<MealPlanResponse>> AddFoodPlanAsync(Int32 dietPlanId, Int32 mealPlanId, FoodPlanRequest request)
         {
             var currentUserId = _userResolverService.GetCurrentUserId();
 
@@ -311,7 +310,7 @@ namespace DietAssistant.Business
             return Result.Create(response);
         }
 
-        public async Task<Result<MealPlanResponse>> UpdateFoodPlan(
+        public async Task<Result<MealPlanResponse>> UpdateFoodPlanAsync(
             Int32 dietPlanId,
             Int32 mealPlanId,
             Int32 foodPlanId,
@@ -367,7 +366,7 @@ namespace DietAssistant.Business
             return Result.Create(response);
         }
 
-        public async Task<Result<Int32>> DeleteFoodPlan(Int32 dietPlanId, Int32 mealPlanId, Int32 foodPlanId)
+        public async Task<Result<Int32>> DeleteFoodPlanAsync(Int32 dietPlanId, Int32 mealPlanId, Int32 foodPlanId)
         {
             var currentUserId = _userResolverService.GetCurrentUserId();
 
