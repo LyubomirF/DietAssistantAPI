@@ -5,6 +5,7 @@ using DietAssistant.DataAccess.Contracts;
 using DietAssistant.DataAccess.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 
 namespace DietAssistant.WebAPI.Extentions
@@ -63,6 +64,11 @@ namespace DietAssistant.WebAPI.Extentions
                         },
                         new List<string>()
                     }
+                });
+                c.MapType<TimeSpan>(() => new OpenApiSchema
+                {
+                    Type = "string",
+                    Example = new OpenApiString("00:00:00")
                 });
             });
         }

@@ -234,7 +234,7 @@ namespace DietAssistant.Business
 
         private Result<FoodDetails> CaculateFoodNutrition(FoodDetails food, ServingRequest request)
         {
-            if (request != null && request.Unit == null && !request.Amount.HasValue)
+            if (request == null || (request.Unit == null && !request.Amount.HasValue))
                 return Result.Create(food);
 
             if (!IsUnitAllowed(food, request.Unit))

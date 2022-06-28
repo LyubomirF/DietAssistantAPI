@@ -11,7 +11,7 @@ namespace DietAssistant.Business.Contracts
 
         Task<Result<DietPlanResponse>> GetDietPlanAsync(Int32 dietPlanId);
 
-        Task<Result<Int32>> CreateDietPlanAsync(String planName);
+        Task<Result<Int32>> CreateDietPlanAsync(CreateDietPlanRequest request);
 
         Task<Result<Int32>> DeleteDietPlanAsync(Int32 dietPlanId);
 

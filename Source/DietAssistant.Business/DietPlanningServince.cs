@@ -86,9 +86,9 @@ namespace DietAssistant.Business
             return Result.Create(response);
         }
 
-        public async Task<Result<Int32>> CreateDietPlanAsync(String planName)
+        public async Task<Result<Int32>> CreateDietPlanAsync(CreateDietPlanRequest request)
         {
-            if (String.IsNullOrEmpty(planName))
+            if (String.IsNullOrEmpty(request.PlanName))
                 return Result.CreateWithError<Int32>(EvaluationTypes.InvalidParameters, "The name of the diet plan is required.");
 
             var currentUserId = _userResolverService.GetCurrentUserId();
@@ -98,7 +98,7 @@ namespace DietAssistant.Business
 
             var newDietPlan = new DietPlan
             {
-                PlanName = planName,
+                PlanName = request.PlanName,
                 UserId = currentUserId.Value
             };
 
@@ -219,6 +219,9 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<MealPlanResponse>(EvaluationTypes.NotFound, "Meal plan was not found.");
 
+            mealPlan.MealPlanName = request.MealName;
+            mealPlan.Time = request.Time;
+            mealPlan.DayOfWeek = request.Day;
             mealPlan.FoodPlans.Clear();
 
             foreach (var foodPlan in request.FoodPlanRequests)
@@ -283,7 +286,12 @@ namespace DietAssistant.Business
             if (mealPlan is null)
                 return Result.CreateWithError<MealPlanResponse>(EvaluationTypes.NotFound, "Meal plan was not found.");
 
-            var foodResponse = await _foodCatalogService.GetFoodByIdAsync(request.FoodId, null);
+            var foodResponse = await _foodCatalogService.GetFoodByIdAsync(request.FoodId,
+                new ServingRequest
+                {
+                    Amount = request.ServingSize,
+                    Unit = request.Unit
+                });
 
             if (foodResponse.IsFailure())
                 return Result
@@ -424,7 +432,8 @@ namespace DietAssistant.Business
             {
                 var dayTotalMacros = new DayTotalMacros
                 {
-                    Day = dayMealPlan.Day
+                    Day = dayMealPlan.Day,
+                    MealPlansMacros = new List<MealPlanTotalMacrosDto>()
                 };
 
                 foreach (var mealPlan in dayMealPlan.MealPlans)
@@ -451,7 +460,7 @@ namespace DietAssistant.Business
 
                         var food = foodResponse.Data;
 
-                        var foodCalories = food.GetNutrientAmount(DietAssistantConstants.Carbohydrates);
+                        var foodCalories = food.GetNutrientAmount(DietAssistantConstants.Calories);
                         var foodCarbs = food.GetNutrientAmount(DietAssistantConstants.Carbohydrates);
                         var foodProtein = food.GetNutrientAmount(DietAssistantConstants.Protein);
                         var foodFat = food.GetNutrientAmount(DietAssistantConstants.Fat);
@@ -467,7 +476,7 @@ namespace DietAssistant.Business
                 result.Add(dayTotalMacros);
             }
 
-            return  Result.Create(result);
+            return Result.Create(result);
         }
     }
 }
