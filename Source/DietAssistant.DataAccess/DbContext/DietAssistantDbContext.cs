@@ -59,6 +59,12 @@ namespace DietAssistant.DataAccess
 
                 options
                     .HasOne(x => x.Goal)
+                    .WithOne(x => x.User)
+                    .HasForeignKey<Goal>(x => x.GoalId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                options
+                    .HasMany(x => x.NutritionGoals)
                     .WithOne(x => x.User);
 
             });
@@ -121,14 +127,14 @@ namespace DietAssistant.DataAccess
             {
                 options.HasKey(x => x.GoalId);
 
-                options.HasOne(x => x.User).WithOne(x => x.Goal);
-
                 options.HasOne(x => x.NutritionGoal);
             });
 
             builder.Entity<NutritionGoal>(options =>
             {
                 options.HasKey(x => x.NutritionGoalId);
+
+                options.HasOne(x => x.User).WithMany(x => x.NutritionGoals).HasForeignKey(x => x.UserId);
             });
         }
     }

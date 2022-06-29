@@ -136,10 +136,7 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
             modelBuilder.Entity("DietAssistant.Domain.Goal", b =>
                 {
                     b.Property<int>("GoalId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GoalId"), 1L, 1);
 
                     b.Property<int>("ActivityLevel")
                         .HasColumnType("int");
@@ -168,9 +165,6 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                     b.HasKey("GoalId");
 
                     b.HasIndex("NutritionGoalId");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
 
                     b.ToTable("Goals");
                 });
@@ -222,7 +216,12 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                     b.Property<double>("PercentProtein")
                         .HasColumnType("float");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("NutritionGoalId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("NutritionGoals");
                 });
@@ -353,15 +352,15 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
 
             modelBuilder.Entity("DietAssistant.Domain.Goal", b =>
                 {
+                    b.HasOne("DietAssistant.Domain.User", "User")
+                        .WithOne("Goal")
+                        .HasForeignKey("DietAssistant.Domain.Goal", "GoalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("DietAssistant.Domain.NutritionGoal", "NutritionGoal")
                         .WithMany()
                         .HasForeignKey("NutritionGoalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DietAssistant.Domain.User", "User")
-                        .WithOne("Goal")
-                        .HasForeignKey("DietAssistant.Domain.Goal", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -374,6 +373,17 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                 {
                     b.HasOne("DietAssistant.Domain.User", "User")
                         .WithMany("Meals")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DietAssistant.Domain.NutritionGoal", b =>
+                {
+                    b.HasOne("DietAssistant.Domain.User", "User")
+                        .WithMany("NutritionGoals")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -426,6 +436,8 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                         .IsRequired();
 
                     b.Navigation("Meals");
+
+                    b.Navigation("NutritionGoals");
 
                     b.Navigation("ProgressLogs");
 

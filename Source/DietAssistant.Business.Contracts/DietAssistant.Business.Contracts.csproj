@@ -11,4 +11,8 @@
     <ProjectReference Include="..\DietAssistant.Domain\DietAssistant.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\UserStats\Responses\" />
+  </ItemGroup>
+
 </Project>

@@ -13,5 +13,9 @@
         public Double PercentFat { get; set; }
 
         public DateTime ChangedOnUTC { get; set; }
+
+        public User User { get; set; }
+
+        public Int32 UserId { get; set; }
     }
 }

@@ -55,24 +55,31 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                     PercentProtein = table.Column<double>(type: "float", nullable: false),
                     PercentCarbs = table.Column<double>(type: "float", nullable: false),
                     PercentFat = table.Column<double>(type: "float", nullable: false),
-                    ChangedOnUTC = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    ChangedOnUTC = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_NutritionGoals", x => x.NutritionGoalId);
+                    table.ForeignKey(
+                        name: "FK_NutritionGoals_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Goals",
                 columns: table => new
                 {
-                    GoalId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    GoalId = table.Column<int>(type: "int", nullable: false),
                     StartWeight = table.Column<double>(type: "float", nullable: false),
                     StartDate = table.Column<double>(type: "float", nullable: false),
                     CurrentWeight = table.Column<double>(type: "float", nullable: false),
                     GoalWeight = table.Column<double>(type: "float", nullable: false),
                     WeeklyGoal = table.Column<int>(type: "int", nullable: false),
+                    ActivityLevel = table.Column<int>(type: "int", nullable: false),
                     NutritionGoalId = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -86,11 +93,11 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                         principalColumn: "NutritionGoalId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Goals_Users_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Goals_Users_GoalId",
+                        column: x => x.GoalId,
                         principalTable: "Users",
                         principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -99,10 +106,9 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                 column: "NutritionGoalId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Goals_UserId",
-                table: "Goals",
-                column: "UserId",
-                unique: true);
+                name: "IX_NutritionGoals_UserId",
+                table: "NutritionGoals",
+                column: "UserId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

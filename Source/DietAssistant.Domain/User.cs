@@ -18,6 +18,8 @@ namespace DietAssistant.Domain
 
         public Goal Goal { get; set; }
 
+        public ICollection<NutritionGoal> NutritionGoals { get; set; }
+
         public ICollection<ProgressLog> ProgressLogs { get; set; }
 
         public ICollection<Meal> Meals { get; set; }
