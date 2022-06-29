@@ -75,7 +75,7 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                 {
                     GoalId = table.Column<int>(type: "int", nullable: false),
                     StartWeight = table.Column<double>(type: "float", nullable: false),
-                    StartDate = table.Column<double>(type: "float", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CurrentWeight = table.Column<double>(type: "float", nullable: false),
                     GoalWeight = table.Column<double>(type: "float", nullable: false),
                     WeeklyGoal = table.Column<int>(type: "int", nullable: false),

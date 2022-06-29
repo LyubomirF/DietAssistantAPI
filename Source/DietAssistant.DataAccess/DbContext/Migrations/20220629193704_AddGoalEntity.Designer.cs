@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DietAssistant.DataAccess.DbContext.Migrations
 {
     [DbContext(typeof(DietAssistantDbContext))]
-    [Migration("20220629144957_AddGoalEntity")]
+    [Migration("20220629193704_AddGoalEntity")]
     partial class AddGoalEntity
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -152,8 +152,8 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                     b.Property<int>("NutritionGoalId")
                         .HasColumnType("int");
 
-                    b.Property<double>("StartDate")
-                        .HasColumnType("float");
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<double>("StartWeight")
                         .HasColumnType("float");

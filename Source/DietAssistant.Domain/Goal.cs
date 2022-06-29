@@ -8,7 +8,7 @@ namespace DietAssistant.Domain
 
         public Double StartWeight { get; set; }
 
-        public Double StartDate { get; set; }
+        public DateTime StartDate { get; set; }
 
         public Double CurrentWeight { get; set; }
 

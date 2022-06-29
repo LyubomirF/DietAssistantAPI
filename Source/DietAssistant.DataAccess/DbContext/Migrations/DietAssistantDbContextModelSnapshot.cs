@@ -150,8 +150,8 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                     b.Property<int>("NutritionGoalId")
                         .HasColumnType("int");
 
-                    b.Property<double>("StartDate")
-                        .HasColumnType("float");
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<double>("StartWeight")
                         .HasColumnType("float");
