@@ -29,6 +29,10 @@ namespace DietAssistant.DataAccess
 
         public DbSet<FoodPlan> FoodPlans { get; set; }
 
+        public DbSet<Goal> Goals { get; set; }
+
+        public DbSet<NutritionGoal> NutritionGoals { get; set; }
+
         #endregion
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -51,6 +55,10 @@ namespace DietAssistant.DataAccess
 
                 options
                     .HasMany(x => x.DietPlans)
+                    .WithOne(x => x.User);
+
+                options
+                    .HasOne(x => x.Goal)
                     .WithOne(x => x.User);
 
             });
@@ -107,6 +115,20 @@ namespace DietAssistant.DataAccess
             builder.Entity<FoodPlan>(options =>
             {
                 options.HasKey(x => x.FoodPlanId);
+            });
+
+            builder.Entity<Goal>(options =>
+            {
+                options.HasKey(x => x.GoalId);
+
+                options.HasOne(x => x.User).WithOne(x => x.Goal);
+
+                options.HasOne(x => x.NutritionGoal);
+            });
+
+            builder.Entity<NutritionGoal>(options =>
+            {
+                options.HasKey(x => x.NutritionGoalId);
             });
         }
     }

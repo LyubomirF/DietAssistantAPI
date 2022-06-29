@@ -1,5 +1,7 @@
 ﻿#pragma warning disable CS8618
 
+using DietAssistant.Domain.Enums;
+
 namespace DietAssistant.Domain
 {
     public class UserStats
@@ -10,12 +12,16 @@ namespace DietAssistant.Domain
 
         public Int32 UserId { get; set; }
 
+        public Gender Gender { get; set; }
+
         public Double Height { get; set; }
 
         public Double Weight { get; set; }
 
-        public String MetricSystem { get; set; }
+        public HeightUnits HeightUnit { get; set; }
 
-        public Double? BodyFatPercentage { get; set; }
+        public WeightUnits WeightUnit { get; set; }
+ 
+        public DateTime DateOfBirth { get; set; }
     }
 }
