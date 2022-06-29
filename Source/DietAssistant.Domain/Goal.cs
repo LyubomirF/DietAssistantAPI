@@ -16,6 +16,8 @@ namespace DietAssistant.Domain
 
         public WeeklyGoal WeeklyGoal { get; set; }
 
+        public ActivityLevel ActivityLevel { get; set; }
+
         public NutritionGoal NutritionGoal { get; set; }
 
         public User User { get; set; }
