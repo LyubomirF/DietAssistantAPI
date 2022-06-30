@@ -73,7 +73,8 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                 name: "Goals",
                 columns: table => new
                 {
-                    GoalId = table.Column<int>(type: "int", nullable: false),
+                    GoalId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     StartWeight = table.Column<double>(type: "float", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CurrentWeight = table.Column<double>(type: "float", nullable: false),
@@ -93,8 +94,8 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                         principalColumn: "NutritionGoalId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Goals_Users_GoalId",
-                        column: x => x.GoalId,
+                        name: "FK_Goals_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
@@ -104,6 +105,12 @@ namespace DietAssistant.DataAccess.DbContext.Migrations
                 name: "IX_Goals_NutritionGoalId",
                 table: "Goals",
                 column: "NutritionGoalId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Goals_UserId",
+                table: "Goals",
+                column: "UserId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_NutritionGoals_UserId",

@@ -60,7 +60,7 @@ namespace DietAssistant.DataAccess
                 options
                     .HasOne(x => x.Goal)
                     .WithOne(x => x.User)
-                    .HasForeignKey<Goal>(x => x.GoalId)
+                    .HasForeignKey<Goal>(x => x.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 options
