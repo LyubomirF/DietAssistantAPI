@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DietAssistant.Business.Contracts\DietAssistant.Business.Contracts.csproj" />
     <ProjectReference Include="..\DietAssistant.Domain\DietAssistant.Domain.csproj" />
   </ItemGroup>
 

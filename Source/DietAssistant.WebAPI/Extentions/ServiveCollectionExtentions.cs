@@ -27,6 +27,7 @@ namespace DietAssistant.WebAPI.Extentions
             services.AddTransient<IFoodServingService, FoodServingService>();
             services.AddTransient<IFoodCatalogService, FoodCatalogService>();
             services.AddTransient<IDietPlanningService, DietPlanningServince>();
+            services.AddTransient<IUserStatsService, UserStatsService>();
 
             services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddTransient<IUserResolverService, UserResolverService>();
@@ -37,6 +38,7 @@ namespace DietAssistant.WebAPI.Extentions
             services.AddTransient<IMealRepository, MealRepository>();
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IDietPlanRepository, DietPlanRepository>();
+            services.AddTransient<IUserStatsRepository, UserStatsRepository>();
         }
 
         public static void AddCustomSwagger(this IServiceCollection services)

@@ -15,6 +15,5 @@ namespace DietAssistant.Business.Contracts.Models.UserStats.Requests
         public Gender Gender { get; set; }
 
         public DateTime DateOfBirth { get; set; }
-
     }
 }
