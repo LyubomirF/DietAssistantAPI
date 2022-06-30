@@ -1,6 +1,8 @@
 ﻿using DietAssistant.Business.Contracts;
 using DietAssistant.Business.Contracts.Models.UserStats.Requests;
 using DietAssistant.Business.Contracts.Models.UserStats.Responses;
+using DietAssistant.Business.Extentions;
+using DietAssistant.Business.Helpers;
 using DietAssistant.Business.Mappers;
 using DietAssistant.Common;
 using DietAssistant.DataAccess.Contracts;
@@ -39,7 +41,13 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var userStats = new UserStats
+            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+
+            if(userStats is not null)
+                return Result
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats already set for user.");
+
+            var newUserStats = new UserStats
             {
                 Height = request.Height,
                 Weight = request.Weight,
@@ -53,9 +61,9 @@ namespace DietAssistant.Business
             var nutritionGoal = new NutritionGoal
             {
                 Calories = CalculateDailyCalories(
-                    request.Height,
-                    request.Weight,
-                    ToAge(request.DateOfBirth, DateTime.Today),
+                    request.HeightUnit == HeightUnits.Centimeters ? request.Height : request.Height.ToCentimeters(),
+                    request.WeightUnit == WeightUnits.Kilograms ? request.Weight : request.Weight.ToKgs(),
+                    request.DateOfBirth.ToAge(DateTime.Today),
                     request.Gender,
                     ActivityLevel.Sedentary,
                     WeeklyGoal.MaintainWeight),
@@ -85,7 +93,7 @@ namespace DietAssistant.Business
                 UserId = currentUserId.Value
             };
 
-            var result = await _userStatsRepository.AddWithGoalAndProgressLogAsync(userStats, goal, progressLog);
+            var result = await _userStatsRepository.AddWithGoalAndProgressLogAsync(newUserStats, goal, progressLog);
 
             return Result.Create(result.ToResponse());
         }
@@ -124,17 +132,5 @@ namespace DietAssistant.Business
             };
         }
 
-        private Int32 ToAge(DateTime dateOfBirth, DateTime date)
-        {
-            int age;
-            age = date.Year - dateOfBirth.Year;
-
-            if (age > 0)
-                age -= Convert.ToInt32(date.Date < dateOfBirth.Date.AddYears(age));
-            else
-                age = 0;
-
-            return age;
-        }
     }
 }

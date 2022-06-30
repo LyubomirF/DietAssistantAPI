@@ -5,6 +5,8 @@ namespace DietAssistant.DataAccess.Contracts
 {
     public interface IUserStatsRepository : IRepository<UserStats>
     {
+        Task<UserStats> GetUserStatsAsync(Int32 userId);
+
         Task<UserStats> AddWithGoalAndProgressLogAsync(
             UserStats userStats,
             Goal goal,

@@ -1,11 +1,14 @@
 ﻿using DietAssistant.DataAccess.Contracts;
 using DietAssistant.Domain;
+using Microsoft.EntityFrameworkCore;
+
+#pragma warning disable
 
 namespace DietAssistant.DataAccess.Repositories
 {
     public class UserStatsRepository : Repository<UserStats>, IUserStatsRepository
     {
-        public UserStatsRepository(DietAssistantDbContext dbContext) 
+        public UserStatsRepository(DietAssistantDbContext dbContext)
             : base(dbContext) { }
 
         public async Task<UserStats> AddWithGoalAndProgressLogAsync(
@@ -25,6 +28,10 @@ namespace DietAssistant.DataAccess.Repositories
 
             return userStats;
         }
+
+        public Task<UserStats> GetUserStatsAsync(Int32 userId)
+           => _dbContext.UsersStats
+                .SingleOrDefaultAsync(x => x.UserId == userId);
 
         public async Task<Goal> SetNutritionGoalAsync(Goal goal, NutritionGoal nutritionGoal)
         {
