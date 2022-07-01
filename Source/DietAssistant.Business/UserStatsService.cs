@@ -113,7 +113,8 @@ namespace DietAssistant.Business
 
             var progressLog = new ProgressLog
             {
-                Weigth = request.Weight,
+                MeasurementType = MeasurementType.Weight,
+                Measurement = request.Weight,
                 LoggedOn = DateTime.Now,
                 UserId = currentUserId.Value
             };
@@ -182,10 +183,10 @@ namespace DietAssistant.Business
 
             await _goalRespository.SaveEntityAsync(goal);
 
-            var logs = await _progressLogRepository.GetProgressLogsAsync(userId);
+            var logs = await _progressLogRepository.GetProgressLogsAsync(userId, MeasurementType.Weight);
 
             foreach (var log in logs)
-                log.Weigth = ConvertWeight(log.Weigth, weightUnit);
+                log.Measurement = ConvertWeight(log.Measurement, weightUnit);
 
             await _progressLogRepository.UpdateRangeAsync(logs);
 
@@ -246,7 +247,8 @@ namespace DietAssistant.Business
 
             var newProgressLog = new ProgressLog
             {
-                Weigth = userStats.Weight,
+                MeasurementType = MeasurementType.Weight,
+                Measurement = userStats.Weight,
                 LoggedOn = DateTime.Now,
                 UserId = userStats.UserId
             };

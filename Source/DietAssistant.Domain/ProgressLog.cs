@@ -1,5 +1,7 @@
 ﻿#pragma warning disable CS8618
 
+using DietAssistant.Domain.Enums;
+
 namespace DietAssistant.Domain
 {
     public class ProgressLog
@@ -10,7 +12,9 @@ namespace DietAssistant.Domain
 
         public Int32 UserId { get; set; }
 
-        public Double Weigth { get; set; }
+        public MeasurementType MeasurementType { get; set; }
+
+        public Double Measurement { get; set; }
 
         public DateTime LoggedOn { get; set; }
     }

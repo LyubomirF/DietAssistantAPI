@@ -9,8 +9,6 @@ namespace DietAssistant.DataAccess.Contracts
             Goal goal,
             ProgressLog progressLog);
 
-        Task<UserStats> UpdateWithWeightChangeAsync(UserStats userStats, Goal goal);
-
         Task<UserStats> GetUserStatsAsync(Int32 userId);
     } 
 }

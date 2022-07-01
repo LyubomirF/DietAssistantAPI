@@ -38,31 +38,5 @@ namespace DietAssistant.DataAccess.Repositories
         Task<UserStats> IRepository<UserStats>.GetByIdAsync(int id)
             => GetByIdAsync(id);
 
-        public async Task<UserStats> UpdateWithWeightChangeAsync(UserStats userStats, Goal goal)
-        {
-            using var transaction = await _dbContext.Database.BeginTransactionAsync();
-
-            _dbContext.UsersStats.Update(userStats);
-
-            await _dbContext.SaveChangesAsync();
-
-            _dbContext.Goals.Update(goal);
-            await _dbContext.SaveChangesAsync();
-
-            var newProgressLog = new ProgressLog
-            {
-                Weigth = userStats.Weight,
-                LoggedOn = DateTime.Now,
-                UserId = userStats.UserId
-            };
-
-            _dbContext.ProgressLogs.AddAsync(newProgressLog);
-            await _dbContext.SaveChangesAsync();
-
-            await transaction.CommitAsync();
-
-            return userStats;
-        }
-
     }
 }

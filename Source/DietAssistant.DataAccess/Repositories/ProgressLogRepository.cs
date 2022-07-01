@@ -1,5 +1,6 @@
 ﻿using DietAssistant.DataAccess.Contracts;
 using DietAssistant.Domain;
+using DietAssistant.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace DietAssistant.DataAccess.Repositories
@@ -9,9 +10,9 @@ namespace DietAssistant.DataAccess.Repositories
         public ProgressLogRepository(DietAssistantDbContext dbContext) 
             : base(dbContext) { }
 
-        public async Task<IEnumerable<ProgressLog>> GetProgressLogsAsync(Int32 userId)
+        public async Task<IEnumerable<ProgressLog>> GetProgressLogsAsync(Int32 userId, MeasurementType type)
             => await _dbContext.ProgressLogs
-                .Where(x => x.UserId == userId)
+                .Where(x => x.UserId == userId && x.MeasurementType == type)
                 .ToListAsync();
 
         public async Task UpdateRangeAsync(IEnumerable<ProgressLog> progressLogs)
