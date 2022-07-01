@@ -4,12 +4,12 @@ namespace DietAssistant.Business.Contracts.Models.UserStats.Requests
 {
     public class ChangeHeightUnitRequest
     {
-        public HeightUnits HeightUnit { get; set; }
+        public HeightUnit HeightUnit { get; set; }
     }
 
     public class ChangeWeightUnitRequest
     {
-        public WeightUnits WeightUnit { get; set; }
+        public WeightUnit WeightUnit { get; set; }
     }
 
     public class ChangeHeightRequest

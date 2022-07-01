@@ -1,6 +1,6 @@
 ﻿namespace DietAssistant.Domain.Enums
 {
-    public enum WeightUnits
+    public enum WeightUnit
     {
         Kilograms = 1,
         Pounds = 2

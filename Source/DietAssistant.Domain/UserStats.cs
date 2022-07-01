@@ -18,9 +18,9 @@ namespace DietAssistant.Domain
 
         public Double Weight { get; set; }
 
-        public HeightUnits HeightUnit { get; set; }
+        public HeightUnit HeightUnit { get; set; }
 
-        public WeightUnits WeightUnit { get; set; }
+        public WeightUnit WeightUnit { get; set; }
  
         public DateTime DateOfBirth { get; set; }
     }
