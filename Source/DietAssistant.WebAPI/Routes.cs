@@ -47,4 +47,21 @@
 
         public const String Food = "{id}";
     }
+
+    public static class UserStatsRoutes
+    {
+        public const String Stats = "users/stats";
+
+        public const String WeightUnit = "weight-unit";
+
+        public const String HeightUnit = "height-unit";
+
+        public const String Weight = "weight";
+
+        public const String Height = "height";
+
+        public const String Gender = "gender";
+
+        public const String DateOfBirth = "date-of-birth";
+    }
 }
