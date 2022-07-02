@@ -64,4 +64,11 @@
 
         public const String DateOfBirth = "date-of-birth";
     }
+
+    public static class ProgressLogRoutes
+    {
+        public const String ProgressLogs = "users/progress-logs";
+
+        public const String ProgressLog = "{progressLogId}";
+    }
 }
