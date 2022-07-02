@@ -5,6 +5,7 @@ using DietAssistant.Business.Contracts.Models.ProgressLog.Responses;
 using DietAssistant.Business.Mappers;
 using DietAssistant.Common;
 using DietAssistant.DataAccess.Contracts;
+using DietAssistant.Domain;
 using DietAssistant.Domain.Enums;
 
 namespace DietAssistant.Business
@@ -43,6 +44,31 @@ namespace DietAssistant.Business
                 request.PageSize);
 
             return Result.Create(progressLogs.ToPagedResult(request.Page, request.PageSize, totalCount));
+        }
+
+        public async Task<Result<ProgressLogResponse>> AddProgressLogAsync(AddProgressLogRequest request)
+        {
+            var currentUserId = _userResolverService.GetCurrentUserId();
+
+            if (!currentUserId.HasValue)
+                return Result
+                    .CreateWithError<ProgressLogResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
+
+            if (!Enum.TryParse(request.MeasurementType, out MeasurementType measurementType))
+                return Result
+                    .CreateWithError<ProgressLogResponse>(EvaluationTypes.InvalidParameters, "Invalid measurement type.");
+
+            var newLog = new ProgressLog 
+            {
+                Measurement = request.Measurement,
+                MeasurementType = measurementType,
+                LoggedOn =request.Date,
+                UserId = currentUserId.Value
+            };
+
+            await _progressLogRepository.SaveEntityAsync(newLog);
+
+            return Result.Create(newLog.ToResponse());
         }
 
     }
