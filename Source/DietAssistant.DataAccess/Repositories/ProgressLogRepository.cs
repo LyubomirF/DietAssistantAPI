@@ -3,6 +3,8 @@ using DietAssistant.Domain;
 using DietAssistant.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
+#pragma warning disable
+
 namespace DietAssistant.DataAccess.Repositories
 {
     public class ProgressLogRepository : Repository<ProgressLog>, IProgressLogRepository
@@ -41,6 +43,10 @@ namespace DietAssistant.DataAccess.Repositories
                 .Where(x => x.UserId == userId && x.MeasurementType == type)
                 .ToListAsync();
 
+        public Task<ProgressLog> GetProgressLogAsync(int userId, int progressLogId)
+            => _dbContext.ProgressLogs
+                .SingleOrDefaultAsync(x => x.UserId == userId && x.ProgressLogId == progressLogId);
+
         public async Task UpdateRangeAsync(IEnumerable<ProgressLog> progressLogs)
         {
             _dbContext.ProgressLogs.UpdateRange(progressLogs);
@@ -48,6 +54,9 @@ namespace DietAssistant.DataAccess.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
+        public Task<Int32> DeleteProgressLog(ProgressLog progressLog)
+            => DeleteAsync(progressLog);
+        
         Task<ProgressLog> IRepository<ProgressLog>.GetByIdAsync(Int32 id)
             => GetByIdAsync(id);
     }

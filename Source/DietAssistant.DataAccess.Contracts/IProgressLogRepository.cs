@@ -15,6 +15,10 @@ namespace DietAssistant.DataAccess.Contracts
 
         Task<IEnumerable<ProgressLog>> GetProgressLogsAsync(Int32 userId, MeasurementType type);
 
+        Task<ProgressLog> GetProgressLogAsync(Int32 userId, Int32 progressLogId);
+
         Task UpdateRangeAsync(IEnumerable<ProgressLog> progressLogs);
+
+        Task<Int32> DeleteProgressLog(ProgressLog progressLog);
     }
 }

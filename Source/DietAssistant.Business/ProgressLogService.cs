@@ -71,5 +71,21 @@ namespace DietAssistant.Business
             return Result.Create(newLog.ToResponse());
         }
 
+        public async Task<Result<Int32>> DeleteProgressLogAsync(Int32 progressLogId)
+        {
+            var currentUserId = _userResolverService.GetCurrentUserId();
+
+            if (!currentUserId.HasValue)
+                return Result
+                    .CreateWithError<Int32>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
+
+            var progressLog = await _progressLogRepository.GetProgressLogAsync(currentUserId.Value, progressLogId);
+
+            var result = await _progressLogRepository.DeleteProgressLog(progressLog);
+
+            return result <= 0
+                ? Result.CreateWithError<Int32>(EvaluationTypes.Failed, "Cound not delete progress log.")
+                : Result.Create(progressLogId);
+        }
     }
 }
