@@ -42,7 +42,7 @@ namespace DietAssistant.Business
 
             var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
 
-            if(goal is null)
+            if (goal is null)
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.NotFound, "Goal was not found.");
 
@@ -91,6 +91,45 @@ namespace DietAssistant.Business
             return Result.Create(goal.ToResponse());
         }
 
+        public async Task<Result<GoalResponse>> ChangeGoalWeightAsync(Double goalWeight)
+        {
+            var currentUserId = _userResolverService.GetCurrentUserId();
+
+            if (!currentUserId.HasValue)
+                return Result
+                    .CreateWithError<GoalResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
+
+            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+
+            if (userStats is null)
+                return Result
+                    .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+
+
+            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+
+            var previousWeeklyGoal = goal.WeeklyGoal;
+
+            goal.GoalWeight = goalWeight;
+            goal.WeeklyGoal = ChangeWeeklyGoal(goal.CurrentWeight, goal.GoalWeight, goal.WeeklyGoal);
+
+            if(previousWeeklyGoal != goal.WeeklyGoal)
+            {
+                var nutritionGoal = new Domain.NutritionGoal
+                {
+                    Calories = CalculateCalories(userStats, goal),
+                    PercentCarbs = goal.NutritionGoal.PercentCarbs,
+                    PercentProtein = goal.NutritionGoal.PercentProtein,
+                    PercentFat = goal.NutritionGoal.PercentFat
+                };
+
+                goal.NutritionGoal = nutritionGoal;
+            }    
+
+            await _goalRespository.SaveEntityAsync(goal);
+
+            return Result.Create(goal.ToResponse());
+        }
 
         private Double CalculateCalories(UserStats userStats, Goal goal)
         {
@@ -104,6 +143,25 @@ namespace DietAssistant.Business
                     userStats.Gender,
                     goal.ActivityLevel,
                     goal.WeeklyGoal);
+        }
+
+        private WeeklyGoal ChangeWeeklyGoal(Double currentWeight, Double goalWeight, WeeklyGoal currentWeeklyGoal)
+        {
+            if (goalWeight > currentWeight
+                && (currentWeeklyGoal >= WeeklyGoal.MaintainWeight
+                    && currentWeeklyGoal <= WeeklyGoal.ExtremeWeightLoss))
+            {
+                return WeeklyGoal.SlowWeightGain;
+            }
+
+            if (goalWeight < currentWeight
+                && (currentWeeklyGoal >= WeeklyGoal.SlowWeightGain
+                    && currentWeeklyGoal <= WeeklyGoal.ModerateWeightGain))
+            {
+                return WeeklyGoal.ModerateWeightLoss;
+            }
+
+            return currentWeeklyGoal;
         }
     }
 }
