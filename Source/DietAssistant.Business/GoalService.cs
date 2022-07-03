@@ -82,7 +82,7 @@ namespace DietAssistant.Business
 
             var log = new ProgressLog
             {
-                Measurement = currentWeightRequest,
+                Measurement = request.CurrentWeight,
                 MeasurementType = MeasurementType.Weight,
                 LoggedOn = DateTime.Now
             };
@@ -113,18 +113,19 @@ namespace DietAssistant.Business
             goal.GoalWeight = request.GoalWeight;
             goal.WeeklyGoal = ChangeWeeklyGoal(goal.CurrentWeight, goal.GoalWeight, goal.WeeklyGoal);
 
-            if(previousWeeklyGoal != goal.WeeklyGoal)
+            if (previousWeeklyGoal != goal.WeeklyGoal)
             {
                 var nutritionGoal = new Domain.NutritionGoal
                 {
                     Calories = CalculateCalories(userStats, goal),
                     PercentCarbs = goal.NutritionGoal.PercentCarbs,
                     PercentProtein = goal.NutritionGoal.PercentProtein,
-                    PercentFat = goal.NutritionGoal.PercentFat
+                    PercentFat = goal.NutritionGoal.PercentFat,
+                    ChangedOnUTC = DateTime.UtcNow
                 };
 
                 goal.NutritionGoal = nutritionGoal;
-            }    
+            }
 
             await _goalRespository.SaveEntityAsync(goal);
 
@@ -161,7 +162,8 @@ namespace DietAssistant.Business
                 Calories = CalculateCalories(userStats, goal),
                 PercentCarbs = goal.NutritionGoal.PercentCarbs,
                 PercentProtein = goal.NutritionGoal.PercentProtein,
-                PercentFat = goal.NutritionGoal.PercentFat
+                PercentFat = goal.NutritionGoal.PercentFat,
+                ChangedOnUTC = DateTime.UtcNow
             };
 
             goal.NutritionGoal = nutritionGoal;
@@ -201,7 +203,40 @@ namespace DietAssistant.Business
                 Calories = CalculateCalories(userStats, goal),
                 PercentCarbs = goal.NutritionGoal.PercentCarbs,
                 PercentProtein = goal.NutritionGoal.PercentProtein,
-                PercentFat = goal.NutritionGoal.PercentFat
+                PercentFat = goal.NutritionGoal.PercentFat,
+                ChangedOnUTC = DateTime.UtcNow
+            };
+
+            goal.NutritionGoal = nutritionGoal;
+
+            await _goalRespository.SaveEntityAsync(goal);
+
+            return Result.Create(goal.ToResponse());
+        }
+
+        public async Task<Result<GoalResponse>> ChangeNutritionGoal(NutritionGoalRequest request)
+        {
+            var currentUserId = _userResolverService.GetCurrentUserId();
+
+            if (!currentUserId.HasValue)
+                return Result
+                    .CreateWithError<GoalResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
+
+            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+
+            if (userStats is null)
+                return Result
+                    .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+
+            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+
+            var nutritionGoal = new Domain.NutritionGoal
+            {
+                Calories = request.Calories,
+                PercentCarbs = request.PercentCarbs,
+                PercentProtein = request.PercentProtein,
+                PercentFat = request.PercentFat,
+                ChangedOnUTC = DateTime.UtcNow
             };
 
             goal.NutritionGoal = nutritionGoal;

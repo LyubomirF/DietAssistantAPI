@@ -15,5 +15,7 @@ namespace DietAssistant.Business.Contracts
         Task<Result<GoalResponse>> ChangeWeeklyGoalAsync(ChangeWeeklyGoalRequest request);
 
         Task<Result<GoalResponse>> ChangeActivityLevelAsync(ChangeActivityLevelRequest request);
+
+        Task<Result<GoalResponse>> ChangeNutritionGoal(NutritionGoalRequest request);
     }
 }
