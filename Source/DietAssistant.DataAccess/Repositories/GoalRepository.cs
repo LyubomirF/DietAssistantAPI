@@ -11,7 +11,7 @@ namespace DietAssistant.DataAccess.Repositories
         public GoalRepository(DietAssistantDbContext dbContext) 
             : base(dbContext) { }
 
-        public Task<Goal> GetGoalByUserId(int userId)
+        public Task<Goal> GetGoalByUserIdAsync(Int32 userId)
             => _dbContext.Goals
                 .Include(x => x.NutritionGoal)
                 .SingleOrDefaultAsync(x => x.UserId == userId);

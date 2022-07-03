@@ -175,7 +175,7 @@ namespace DietAssistant.Business
             userStats.Weight = ConvertWeight(userStats.Weight, weightUnit);
             await _userStatsRepository.SaveEntityAsync(userStats);
 
-            var goal = await _goalRespository.GetGoalByUserId(userId);
+            var goal = await _goalRespository.GetGoalByUserIdAsync(userId);
 
             goal.StartWeight = ConvertWeight(goal.StartWeight, weightUnit);
             goal.CurrentWeight = ConvertWeight(goal.CurrentWeight, weightUnit);
@@ -207,7 +207,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
-            var goal = await _goalRespository.GetGoalByUserId(currentUserId.Value);
+            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
 
             if (goal is null)
                 return Result
@@ -272,7 +272,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
-            var goal = await _goalRespository.GetGoalByUserId(currentUserId.Value);
+            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
 
             if (goal is null)
                 return Result
@@ -325,7 +325,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
-            var goal = await _goalRespository.GetGoalByUserId(currentUserId.Value);
+            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
 
             if (goal is null)
                 return Result
@@ -378,7 +378,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
-            var goal = await _goalRespository.GetGoalByUserId(currentUserId.Value);
+            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
 
             if (goal is null)
                 return Result
