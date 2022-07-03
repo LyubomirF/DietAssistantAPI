@@ -1,4 +1,5 @@
 ﻿using DietAssistant.Business.Contracts;
+using DietAssistant.Business.Contracts.Models.Goal.Requests;
 using DietAssistant.Business.Contracts.Models.Goal.Responses;
 using DietAssistant.Business.Extentions;
 using DietAssistant.Business.Helpers;
@@ -49,7 +50,7 @@ namespace DietAssistant.Business
             return Result.Create(goal.ToResponse());
         }
 
-        public async Task<Result<GoalResponse>> ChangeCurrentWeightAsync(Double currentWeightRequest)
+        public async Task<Result<GoalResponse>> ChangeCurrentWeightAsync(ChangeCurrentWeighRequest request)
         {
             var currentUserId = _userResolverService.GetCurrentUserId();
 
@@ -65,7 +66,7 @@ namespace DietAssistant.Business
 
             var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
 
-            goal.CurrentWeight = currentWeightRequest;
+            goal.CurrentWeight = request.CurrentWeight;
 
             var nutritionGoal = new Domain.NutritionGoal
             {
@@ -91,7 +92,7 @@ namespace DietAssistant.Business
             return Result.Create(goal.ToResponse());
         }
 
-        public async Task<Result<GoalResponse>> ChangeGoalWeightAsync(Double goalWeightRequest)
+        public async Task<Result<GoalResponse>> ChangeGoalWeightAsync(ChangeGoalWeightRequest request)
         {
             var currentUserId = _userResolverService.GetCurrentUserId();
 
@@ -109,7 +110,7 @@ namespace DietAssistant.Business
 
             var previousWeeklyGoal = goal.WeeklyGoal;
 
-            goal.GoalWeight = goalWeightRequest;
+            goal.GoalWeight = request.GoalWeight;
             goal.WeeklyGoal = ChangeWeeklyGoal(goal.CurrentWeight, goal.GoalWeight, goal.WeeklyGoal);
 
             if(previousWeeklyGoal != goal.WeeklyGoal)
@@ -130,9 +131,9 @@ namespace DietAssistant.Business
             return Result.Create(goal.ToResponse());
         }
 
-        public async Task<Result<GoalResponse>> ChangeWeeklyGoalAsync(String weeklyGoalRequest)
+        public async Task<Result<GoalResponse>> ChangeWeeklyGoalAsync(ChangeWeeklyGoalRequest request)
         {
-            if (Enum.TryParse(weeklyGoalRequest, out WeeklyGoal weeklyGoal))
+            if (Enum.TryParse(request.WeeklyGoal, out WeeklyGoal weeklyGoal))
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "Invalid weekly goal value.");
 
@@ -170,9 +171,9 @@ namespace DietAssistant.Business
             return Result.Create(goal.ToResponse());
         }
 
-        public async Task<Result<GoalResponse>> ChangeActivityLevelAsync(String activityLevelRequest)
+        public async Task<Result<GoalResponse>> ChangeActivityLevelAsync(ChangeActivityLevelRequest request)
         {
-            if (Enum.TryParse(activityLevelRequest, out ActivityLevel activityLevel))
+            if (Enum.TryParse(request.ActivityLevel, out ActivityLevel activityLevel))
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "Invalid activity level value.");
 
