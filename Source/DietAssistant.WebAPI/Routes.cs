@@ -71,4 +71,19 @@
 
         public const String ProgressLog = "{progressLogId}";
     }
+
+    public static class GoalRoutes
+    {
+        public const String Goals = "users/current/goal";
+
+        public const String CurrentWeight = "current-weight";
+
+        public const String GoalWeight = "goal-weight";
+
+        public const String WeeklyGoal = "weekly-goal";
+
+        public const String ActivityLevel = "activity-level";
+
+        public const String NutritionGoal = "nutrition-goal";
+    }
 }

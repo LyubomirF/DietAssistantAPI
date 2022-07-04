@@ -214,7 +214,7 @@ namespace DietAssistant.Business
             return Result.Create(goal.ToResponse());
         }
 
-        public async Task<Result<GoalResponse>> ChangeNutritionGoal(NutritionGoalRequest request)
+        public async Task<Result<GoalResponse>> ChangeNutritionGoalAsync(NutritionGoalRequest request)
         {
             var currentUserId = _userResolverService.GetCurrentUserId();
 

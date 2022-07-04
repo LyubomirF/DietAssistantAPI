@@ -16,6 +16,6 @@ namespace DietAssistant.Business.Contracts
 
         Task<Result<GoalResponse>> ChangeActivityLevelAsync(ChangeActivityLevelRequest request);
 
-        Task<Result<GoalResponse>> ChangeNutritionGoal(NutritionGoalRequest request);
+        Task<Result<GoalResponse>> ChangeNutritionGoalAsync(NutritionGoalRequest request);
     }
 }
