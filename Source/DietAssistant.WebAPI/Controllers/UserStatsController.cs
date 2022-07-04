@@ -8,10 +8,9 @@ namespace DietAssistant.WebAPI.Controllers
 {
     using static UserStatsRoutes;
 
-    [Route("api/" + Stats)]
-    [ApiController]
+    [Route(Stats)]
     [Authorize]
-    public class UserStatsController : ControllerBase
+    public class UserStatsController : BaseController
     {
         private readonly IUserStatsService _userStatsService;
 

@@ -7,9 +7,8 @@ namespace DietAssistant.WebAPI.Controllers
 {
     using static FoodCatalogRoutes;
 
-    [Route("api/" + Foods)]
-    [ApiController]
-    public class FoodCatalogController : ControllerBase
+    [Route(Foods)]
+    public class FoodCatalogController : BaseController
     {
         private readonly IFoodCatalogService _foodCatalog;
 

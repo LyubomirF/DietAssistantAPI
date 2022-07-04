@@ -9,10 +9,9 @@ namespace DietAssistant.WebAPI.Controllers
 {
     using static DiaryRoutes;
 
-    [Route("api/" + Diary)]
-    [ApiController]
+    [Route(Diary)]
     [Authorize]
-    public class DiaryController : ControllerBase
+    public class DiaryController : BaseController
     {
         private readonly IMealService _mealService;
         private readonly IFoodServingService _foodServingService;

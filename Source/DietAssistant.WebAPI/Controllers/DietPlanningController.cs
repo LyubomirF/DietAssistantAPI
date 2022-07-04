@@ -8,10 +8,9 @@ namespace DietAssistant.WebAPI.Controllers
 {
     using static DietPlanningRoutes;
 
-    [Route("api/" + DietPlans)]
-    [ApiController]
+    [Route(DietPlans)]
     [Authorize]
-    public class DietPlanningController : ControllerBase
+    public class DietPlanningController : BaseController
     {
         private readonly IDietPlanningService _dietPlanningService;
 

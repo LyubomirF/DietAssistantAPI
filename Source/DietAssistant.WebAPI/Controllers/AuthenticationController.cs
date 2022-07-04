@@ -8,10 +8,9 @@ namespace DietAssistant.WebAPI.Controllers
 {
     using static AuthRoutes;
 
-    [Route("api/" + Auth)]
-    [ApiController]
+    [Route(Auth)]
     [Authorize]
-    public class AuthenticationController : ControllerBase
+    public class AuthenticationController : BaseController
     {
         private readonly IAuthenticationService _authenticationService;
 

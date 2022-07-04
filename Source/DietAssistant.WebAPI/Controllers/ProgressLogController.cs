@@ -8,10 +8,9 @@ namespace DietAssistant.WebAPI.Controllers
 {
     using static ProgressLogRoutes;
 
-    [Route("api/" + ProgressLogs)]
-    [ApiController]
+    [Route(ProgressLogs)]
     [Authorize]
-    public class ProgressLogController : ControllerBase
+    public class ProgressLogController : BaseController
     {
         private readonly IProgressLogService _progressLogService;
 

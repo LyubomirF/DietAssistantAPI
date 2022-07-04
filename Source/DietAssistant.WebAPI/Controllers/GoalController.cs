@@ -1,15 +1,16 @@
 ﻿using DietAssistant.Business.Contracts;
 using DietAssistant.Business.Contracts.Models.Goal.Requests;
 using DietAssistant.WebAPI.Extentions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DietAssistant.WebAPI.Controllers
 {
     using static GoalRoutes;
 
-    [Route("api/" + Goals)]
-    [ApiController]
-    public class GoalController : ControllerBase
+    [Route(Goals)]
+    [Authorize]
+    public class GoalController : BaseController
     {
         private readonly IGoalService _goalService;
 
