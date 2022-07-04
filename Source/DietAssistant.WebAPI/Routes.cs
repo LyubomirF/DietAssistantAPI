@@ -50,7 +50,7 @@
 
     public static class UserStatsRoutes
     {
-        public const String Stats = "users/stats";
+        public const String Stats = "users/current/stats";
 
         public const String WeightUnit = "weight-unit";
 
@@ -67,7 +67,7 @@
 
     public static class ProgressLogRoutes
     {
-        public const String ProgressLogs = "users/progress-logs";
+        public const String ProgressLogs = "users/current/progress-logs";
 
         public const String ProgressLog = "{progressLogId}";
     }
