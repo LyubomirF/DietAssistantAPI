@@ -64,9 +64,9 @@ namespace DietAssistant.Business
 
             var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
 
-            if (userStats is null)
+            if (userStats is not null)
                 return Result
-                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are already set.");
 
             var newUserStats = new UserStats
             {
