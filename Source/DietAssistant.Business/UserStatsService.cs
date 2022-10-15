@@ -11,7 +11,6 @@ using DietAssistant.Domain.Enums;
 
 namespace DietAssistant.Business
 {
-    using static UnitConverter;
     using static CalorieHelper;
 
     public class UserStatsService : IUserStatsService
@@ -140,7 +139,9 @@ namespace DietAssistant.Business
             var height = userStats.Height;
             userStats.HeightUnit = request.HeightUnit;
 
-            userStats.Height = userStats.HeightUnit == HeightUnit.Centimeters ? ToCentimeters(height) : ToInches(height);
+            userStats.Height = userStats.HeightUnit == HeightUnit.Centimeters
+                ? userStats.GetHeightInCentimeters()
+                : userStats.GetHeightInInches();
 
             await _userStatsRepository.SaveEntityAsync(userStats);
 
@@ -215,8 +216,8 @@ namespace DietAssistant.Business
 
             await _userStatsRepository.SaveEntityAsync(userStats);
 
-            var heightCm = userStats.HeightUnit == HeightUnit.FeetInches ? ToCentimeters(userStats.Height) : userStats.Height;
-            var weightKg = userStats.WeightUnit == WeightUnit.Pounds ? ToKgs(userStats.Weight) : userStats.Weight;
+            var heightCm = userStats.GetHeightInCentimeters();
+            var weightKg = userStats.GetWeightInKg();
 
             var dailyCalories = CalculateDailyCalories(
                 heightCm,
@@ -280,8 +281,8 @@ namespace DietAssistant.Business
 
             await _userStatsRepository.SaveEntityAsync(userStats);
 
-            var heightCm = userStats.HeightUnit == HeightUnit.FeetInches ? ToCentimeters(userStats.Height) : userStats.Height;
-            var weightKg = userStats.WeightUnit == WeightUnit.Pounds ? ToKgs(userStats.Weight) : userStats.Weight;
+            var heightCm = userStats.GetHeightInCentimeters();
+            var weightKg = userStats.GetWeightInKg();
 
             var dailyCalories = CalculateDailyCalories(
                 heightCm,
@@ -333,8 +334,8 @@ namespace DietAssistant.Business
 
             await _userStatsRepository.SaveEntityAsync(userStats);
 
-            var heightCm = userStats.HeightUnit == HeightUnit.FeetInches ? ToCentimeters(userStats.Height) : userStats.Height;
-            var weightKg = userStats.WeightUnit == WeightUnit.Pounds ? ToKgs(userStats.Weight) : userStats.Weight;
+            var heightCm = userStats.GetHeightInCentimeters();
+            var weightKg = userStats.GetWeightInKg();
 
             var dailyCalories = CalculateDailyCalories(
                 heightCm,
@@ -386,8 +387,8 @@ namespace DietAssistant.Business
 
             await _userStatsRepository.SaveEntityAsync(userStats);
 
-            var heightCm = userStats.HeightUnit == HeightUnit.FeetInches ? ToCentimeters(userStats.Height) : userStats.Height;
-            var weightKg = userStats.WeightUnit == WeightUnit.Pounds ? ToKgs(userStats.Weight) : userStats.Weight;
+            var heightCm = userStats.GetHeightInCentimeters();
+            var weightKg = userStats.GetWeightInKg();
 
             var dailyCalories = CalculateDailyCalories(
                 heightCm,
@@ -415,5 +416,9 @@ namespace DietAssistant.Business
 
         private Double ConvertWeight(Double weight, WeightUnit unit)
             => unit == WeightUnit.Kilograms ? ToKgs(weight) : ToPounds(weight);
+
+        private Double ToKgs(Double weightInPounds) => Math.Round(weightInPounds / 2.205, 2);
+        private Double ToPounds(Double weightInKg) => Math.Round(2.205 * weightInKg, 2);
+        private Double ToCentimeters(Double heightInInches) => Math.Round(2.54 * heightInInches, 2);
     }
 }

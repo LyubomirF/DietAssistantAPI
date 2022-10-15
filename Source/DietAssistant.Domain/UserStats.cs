@@ -24,22 +24,22 @@ namespace DietAssistant.Domain
  
         public DateTime DateOfBirth { get; set; }
 
-        public Double GetWeightInPounds()
-            => WeightUnit == WeightUnit.Pounds 
+        public virtual Double GetWeightInPounds()
+            => WeightUnit == WeightUnit.Pounds
                 ? Weight
                 : Math.Round(2.205 * Weight, 2);
 
-        public Double GetWeightInKg()
+        public virtual Double GetWeightInKg()
             => WeightUnit == WeightUnit.Kilograms
                 ? Weight
                 : Math.Round(Weight / 2.205, 2);
 
-        public Double GetHeighInInches()
+        public virtual Double GetHeightInInches()
             => HeightUnit == HeightUnit.FeetInches
                 ? Height
                 : Math.Round(Height / 2.54, 2);
 
-        public Double GetHeighInCentimeters()
+        public virtual Double GetHeightInCentimeters()
             => HeightUnit == HeightUnit.Centimeters
                 ? Height
                 : Math.Round(2.54 * Height, 2);

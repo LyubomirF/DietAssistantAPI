@@ -263,7 +263,7 @@ namespace DietAssistant.Business
 
         private Double CalculateCalories(UserStats userStats, Goal goal)
         {
-            var heightCm = userStats.GetHeighInCentimeters();
+            var heightCm = userStats.GetHeightInCentimeters();
             var weightKg = userStats.GetWeightInKg();
 
             return CalculateDailyCalories(
