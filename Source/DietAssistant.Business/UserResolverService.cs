@@ -1,5 +1,4 @@
 ﻿using DietAssistant.Business.Contracts;
-using DietAssistant.DataAccess.Contracts;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 

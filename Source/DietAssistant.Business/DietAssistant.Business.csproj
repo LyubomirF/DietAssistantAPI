@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="AuthenticationService.cs~RF3329a8.TMP" />
     <None Remove="UserStatsService.cs~RFd39e70.TMP" />
   </ItemGroup>
 
