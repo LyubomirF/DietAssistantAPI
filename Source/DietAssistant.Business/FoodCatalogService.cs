@@ -99,7 +99,7 @@ namespace DietAssistant.Business
             => requesModel.FoodType switch
             {
                 FoodType.Product => DeserializeJsonProducts(json),
-                FoodType.WholeFood => DeserializeJsonIngredients(json),
+                FoodType.WholeFood => DeserializeJsonWholeFood(json),
                 _ => null
             };
 
@@ -140,7 +140,7 @@ namespace DietAssistant.Business
                 };
         }
 
-        private FoodSearch DeserializeJsonIngredients(string json)
+        private FoodSearch DeserializeJsonWholeFood(string json)
         {
             var definition = new
             {

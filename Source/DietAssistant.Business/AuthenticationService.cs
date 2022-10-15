@@ -38,7 +38,7 @@ namespace DietAssistant.Business
 
             if (user is null)
                 return Result
-                    .CreateWithError<AuthenticationResponse>(EvaluationTypes.NotFound, "Incorrect email or password.");
+                    .CreateWithError<AuthenticationResponse>(EvaluationTypes.InvalidParameters, "Incorrect email or password.");
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
 
