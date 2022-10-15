@@ -11,13 +11,13 @@ using DietAssistant.Domain.DietPlanning;
 
 namespace DietAssistant.Business
 {
-    public class DietPlanningServince : IDietPlanningService
+    public class DietPlanningService : IDietPlanningService
     {
         private readonly IUserResolverService _userResolverService;
         private readonly IDietPlanRepository _dietPlanRepository;
         private readonly IFoodCatalogService _foodCatalogService;
 
-        public DietPlanningServince(
+        public DietPlanningService(
             IUserResolverService userResolverService,
             IDietPlanRepository dietPlanRepository,
             IFoodCatalogService foodCatalogService)
