@@ -23,5 +23,25 @@ namespace DietAssistant.Domain
         public WeightUnit WeightUnit { get; set; }
  
         public DateTime DateOfBirth { get; set; }
+
+        public Double GetWeightInPounds()
+            => WeightUnit == WeightUnit.Pounds 
+                ? Weight
+                : Math.Round(2.205 * Weight, 2);
+
+        public Double GetWeightInKg()
+            => WeightUnit == WeightUnit.Kilograms
+                ? Weight
+                : Math.Round(Weight / 2.205, 2);
+
+        public Double GetHeighInInches()
+            => HeightUnit == HeightUnit.FeetInches
+                ? Height
+                : Math.Round(Height / 2.54, 2);
+
+        public Double GetHeighInCentimeters()
+            => HeightUnit == HeightUnit.Centimeters
+                ? Height
+                : Math.Round(2.54 * Height, 2);
     }
 }
