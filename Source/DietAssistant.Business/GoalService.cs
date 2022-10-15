@@ -12,10 +12,12 @@ using DietAssistant.Domain.Enums;
 namespace DietAssistant.Business
 {
     using static CalorieHelper;
-    using static UnitConverter;
 
     public class GoalService : IGoalService
     {
+        private const Double MaintainLimitInPounds = 1;
+        private const Double MaintainLimitInKg = 0.5;
+
         private readonly IUserResolverService _userResolverService;
         private readonly IGoalRespository _goalRespository;
         private readonly IProgressLogRepository _progressLogRepository;
@@ -65,8 +67,14 @@ namespace DietAssistant.Business
                     .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
             var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+            var previousGoal = goal.WeeklyGoal;
 
             goal.CurrentWeight = request.CurrentWeight;
+            goal.WeeklyGoal = ChangeWeeklyGoal(
+                goal.CurrentWeight,
+                goal.GoalWeight,
+                previousGoal,
+                userStats.WeightUnit);
 
             var nutritionGoal = new Domain.NutritionGoal
             {
@@ -89,6 +97,9 @@ namespace DietAssistant.Business
 
             await _progressLogRepository.SaveEntityAsync(log);
 
+            userStats.Weight = request.CurrentWeight;
+            await _userStatsRepository.SaveEntityAsync(userStats);
+
             return Result.Create(goal.ToResponse());
         }
 
@@ -108,12 +119,16 @@ namespace DietAssistant.Business
 
             var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
 
-            var previousWeeklyGoal = goal.WeeklyGoal;
+            var previousGoal = goal.WeeklyGoal;
 
             goal.GoalWeight = request.GoalWeight;
-            goal.WeeklyGoal = ChangeWeeklyGoal(goal.CurrentWeight, goal.GoalWeight, goal.WeeklyGoal);
+            goal.WeeklyGoal = ChangeWeeklyGoal(
+                goal.CurrentWeight,
+                goal.GoalWeight,
+                previousGoal,
+                userStats.WeightUnit);
 
-            if (previousWeeklyGoal != goal.WeeklyGoal)
+            if (previousGoal != goal.WeeklyGoal)
             {
                 var nutritionGoal = new Domain.NutritionGoal
                 {
@@ -248,8 +263,8 @@ namespace DietAssistant.Business
 
         private Double CalculateCalories(UserStats userStats, Goal goal)
         {
-            var heightCm = userStats.HeightUnit == HeightUnit.FeetInches ? ToCentimeters(userStats.Height) : userStats.Height;
-            var weightKg = userStats.WeightUnit == WeightUnit.Pounds ? ToKgs(userStats.Weight) : userStats.Weight;
+            var heightCm = userStats.GetHeighInCentimeters();
+            var weightKg = userStats.GetWeightInKg();
 
             return CalculateDailyCalories(
                     heightCm,
@@ -260,23 +275,39 @@ namespace DietAssistant.Business
                     goal.WeeklyGoal);
         }
 
-        private WeeklyGoal ChangeWeeklyGoal(Double currentWeight, Double goalWeight, WeeklyGoal currentWeeklyGoal)
+        private WeeklyGoal ChangeWeeklyGoal(Double currentWeight, Double goalWeight, WeeklyGoal previousGoal, WeightUnit unit)
         {
+            if (ShouldMaintainWeight(currentWeight, goalWeight, unit))
+            {
+                return WeeklyGoal.MaintainWeight;
+            }
+
             if (goalWeight > currentWeight
-                && (currentWeeklyGoal >= WeeklyGoal.MaintainWeight
-                    && currentWeeklyGoal <= WeeklyGoal.ExtremeWeightLoss))
+                && previousGoal >= WeeklyGoal.MaintainWeight
+                && previousGoal <= WeeklyGoal.ExtremeWeightLoss)
             {
                 return WeeklyGoal.SlowWeightGain;
             }
 
             if (goalWeight < currentWeight
-                && (currentWeeklyGoal >= WeeklyGoal.SlowWeightGain
-                    && currentWeeklyGoal <= WeeklyGoal.ModerateWeightGain))
+                && previousGoal >= WeeklyGoal.SlowWeightGain
+                && previousGoal <= WeeklyGoal.ModerateWeightGain)
             {
                 return WeeklyGoal.ModerateWeightLoss;
             }
 
-            return currentWeeklyGoal;
+            return previousGoal;
         }
+
+        private bool ShouldMaintainWeight(Double currentWeight, Double goalWeight, WeightUnit unit)
+            => unit switch
+            {
+                WeightUnit.Kilograms => 
+                    goalWeight <= currentWeight + MaintainLimitInKg 
+                    && goalWeight >= currentWeight - MaintainLimitInKg,
+                WeightUnit.Pounds => 
+                    goalWeight <= currentWeight + MaintainLimitInPounds 
+                    && goalWeight >= currentWeight - MaintainLimitInPounds
+            };
     }
 }
