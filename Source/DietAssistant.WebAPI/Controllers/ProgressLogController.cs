@@ -19,14 +19,14 @@ namespace DietAssistant.WebAPI.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetProgressLogsPagedAsync([FromQuery] ProgressLogFilterRequest request)
-            => await _progressLogService.GetProgressLogsPagedAsync(request).ToActionResult(this);
+            => await _progressLogService.GetProgressLogsPagedAsync(request).ToActionResultAsync(this);
 
         [HttpPost]
         public async Task<IActionResult> AddProgressLogAsync([FromBody] AddProgressLogRequest request)
-            => await _progressLogService.AddProgressLogAsync(request).ToActionResult(this);
+            => await _progressLogService.AddProgressLogAsync(request).ToActionResultAsync(this);
 
         [HttpDelete(ProgressLog)]
         public async Task<IActionResult> DeleteProgressLogAsync([FromRoute] Int32 progressLogId)
-            => await _progressLogService.DeleteProgressLogAsync(progressLogId).ToActionResult(this);
+            => await _progressLogService.DeleteProgressLogAsync(progressLogId).ToActionResultAsync(this);
     }
 }

@@ -19,41 +19,41 @@ namespace DietAssistant.WebAPI.Controllers
 
         [HttpGet(Macros)]
         public async Task<IActionResult> GetDietPlanMacrosAsync([FromRoute] Int32 dietPlanId)
-            => await _dietPlanningService.GetDietPlanMacrosAsync(dietPlanId).ToActionResult(this);
+            => await _dietPlanningService.GetDietPlanMacrosAsync(dietPlanId).ToActionResultAsync(this);
 
         [HttpGet(DietPlan)]
         public async Task<IActionResult> GetDietPlanAsync([FromRoute] Int32 dietPlanId)
-            => await _dietPlanningService.GetDietPlanAsync(dietPlanId).ToActionResult(this);
+            => await _dietPlanningService.GetDietPlanAsync(dietPlanId).ToActionResultAsync(this);
 
         [HttpPost]
         public async Task<IActionResult> CreateDietPlanAsync([FromBody] CreateDietPlanRequest request)
-            => await _dietPlanningService.CreateDietPlanAsync(request).ToActionResult(this);
+            => await _dietPlanningService.CreateDietPlanAsync(request).ToActionResultAsync(this);
 
         [HttpDelete(DietPlan)]
         public async Task<IActionResult> DeleteDietPlanAsync([FromRoute] Int32 dietPlanId)
-            => await _dietPlanningService.DeleteDietPlanAsync(dietPlanId).ToActionResult(this);
+            => await _dietPlanningService.DeleteDietPlanAsync(dietPlanId).ToActionResultAsync(this);
 
         [HttpPost(MealPlans)]
         public async Task<IActionResult> AddMealPlanAsync([FromRoute] Int32 dietPlanId, [FromBody] AddUpdateMealRequest request)
-            => await _dietPlanningService.AddMealPlanAsync(dietPlanId, request).ToActionResult(this);
+            => await _dietPlanningService.AddMealPlanAsync(dietPlanId, request).ToActionResultAsync(this);
 
         [HttpPut(MealPlan)]
         public async Task<IActionResult> UpdateMealPlanAsync(
             [FromRoute] Int32 dietPlanId,
             [FromRoute] Int32 mealPlanId,
             [FromBody] AddUpdateMealRequest request)
-            => await _dietPlanningService.UpdateMealPlanAsync(dietPlanId, mealPlanId, request).ToActionResult(this);
+            => await _dietPlanningService.UpdateMealPlanAsync(dietPlanId, mealPlanId, request).ToActionResultAsync(this);
 
         [HttpDelete(MealPlan)]
         public async Task<IActionResult> DeleteMealPlanAsync([FromRoute] Int32 dietPlanId,[FromRoute] Int32 mealPlanId)
-            => await _dietPlanningService.DeleteMealPlanAsync(dietPlanId, mealPlanId).ToActionResult(this);
+            => await _dietPlanningService.DeleteMealPlanAsync(dietPlanId, mealPlanId).ToActionResultAsync(this);
 
         [HttpPost(FoodPlans)]
         public async Task<IActionResult> AddFoodPlanAsync(
             [FromRoute] Int32 dietPlanId,
             [FromRoute] Int32 mealPlanId,
             [FromBody] FoodPlanRequest request)
-            => await _dietPlanningService.AddFoodPlanAsync(dietPlanId, mealPlanId, request).ToActionResult(this);
+            => await _dietPlanningService.AddFoodPlanAsync(dietPlanId, mealPlanId, request).ToActionResultAsync(this);
 
         [HttpPut(FoodPlan)]
         public async Task<IActionResult> UpdateFoodPlanAsync(
@@ -61,13 +61,13 @@ namespace DietAssistant.WebAPI.Controllers
             [FromRoute] Int32 mealPlanId,
             [FromRoute] Int32 foodPlanId,
             [FromBody] FoodPlanRequest request)
-            => await _dietPlanningService.UpdateFoodPlanAsync(dietPlanId, mealPlanId, foodPlanId, request).ToActionResult(this);
+            => await _dietPlanningService.UpdateFoodPlanAsync(dietPlanId, mealPlanId, foodPlanId, request).ToActionResultAsync(this);
 
         [HttpDelete(FoodPlan)]
         public async Task<IActionResult> DeleteFoodPlan(
             [FromRoute] Int32 dietPlanId,
             [FromRoute] Int32 mealPlanId,
             [FromRoute] Int32 foodPlanId)
-            => await _dietPlanningService.DeleteFoodPlanAsync(dietPlanId, mealPlanId, foodPlanId).ToActionResult(this);
+            => await _dietPlanningService.DeleteFoodPlanAsync(dietPlanId, mealPlanId, foodPlanId).ToActionResultAsync(this);
     }
 }

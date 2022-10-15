@@ -18,7 +18,7 @@ namespace DietAssistant.WebAPI.Extentions
             };
 
 
-        public static async Task<IActionResult> ToActionResult<T>(this Task<Result<T>> result, ControllerBase controller)
+        public static async Task<IActionResult> ToActionResultAsync<T>(this Task<Result<T>> result, ControllerBase controller)
         {
             return ToActionResult<T>(await result, controller);
         }

@@ -20,11 +20,11 @@ namespace DietAssistant.WebAPI.Controllers
         [HttpPost(Login)]
         [AllowAnonymous]
         public async Task<IActionResult> AuthenticateWithPasswordAsync([FromBody] AuthenticationRequest request)
-            => await _authenticationService.AuthenticateWithPasswordAsync(request).ToActionResult(this);
+            => await _authenticationService.AuthenticateWithPasswordAsync(request).ToActionResultAsync(this);
 
         [HttpPost(Register)]
         [AllowAnonymous]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
-            => await _authenticationService.RegisterAsync(request).ToActionResult(this);
+            => await _authenticationService.RegisterAsync(request).ToActionResultAsync(this);
     }
 }

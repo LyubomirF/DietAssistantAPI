@@ -19,26 +19,26 @@ namespace DietAssistant.WebAPI.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetGoalAsync()
-             => await _goalService.GetGoalAsync().ToActionResult(this);
+             => await _goalService.GetGoalAsync().ToActionResultAsync(this);
 
         [HttpPatch(CurrentWeight)]
         public async Task<IActionResult> ChangeCurrentWeightAsync([FromBody] ChangeCurrentWeighRequest request)
-            => await _goalService.ChangeCurrentWeightAsync(request).ToActionResult(this);
+            => await _goalService.ChangeCurrentWeightAsync(request).ToActionResultAsync(this);
 
         [HttpPatch(GoalWeight)]
         public async Task<IActionResult> ChangeGoalWeightAsync([FromBody] ChangeGoalWeightRequest request)
-            => await _goalService.ChangeGoalWeightAsync(request).ToActionResult(this);
+            => await _goalService.ChangeGoalWeightAsync(request).ToActionResultAsync(this);
 
         [HttpPatch(WeeklyGoal)]
         public async Task<IActionResult> ChangeWeeklyGoalAsync([FromBody] ChangeWeeklyGoalRequest request)
-            => await _goalService.ChangeWeeklyGoalAsync(request).ToActionResult(this);
+            => await _goalService.ChangeWeeklyGoalAsync(request).ToActionResultAsync(this);
 
         [HttpPatch(ActivityLevel)]
         public async Task<IActionResult> ChangeActivityLevelAsync([FromBody] ChangeActivityLevelRequest request)
-            => await _goalService.ChangeActivityLevelAsync(request).ToActionResult(this);
+            => await _goalService.ChangeActivityLevelAsync(request).ToActionResultAsync(this);
 
         [HttpPatch(NutritionGoal)]
         public async Task<IActionResult> ChangeNutritionGoalAsync([FromBody] NutritionGoalRequest request)
-            => await _goalService.ChangeNutritionGoalAsync(request).ToActionResult(this);
+            => await _goalService.ChangeNutritionGoalAsync(request).ToActionResultAsync(this);
     }
 }
