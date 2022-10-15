@@ -4,6 +4,8 @@ namespace DietAssistant.Business.Helpers
 {
     public static class NutritionHelper
     {
+        private const Double GramOunceMulpilier = 28.35;
+
         public static FoodDetails CalculateNutrition(
             this FoodDetails food,
             Double defaultServingSize,
@@ -15,12 +17,12 @@ namespace DietAssistant.Business.Helpers
 
             if (defaultUnit == "g" && targetUnit == "oz")
             {
-                convertedTargetAmount = targetAmount * 28.35;
+                convertedTargetAmount = targetAmount * GramOunceMulpilier;
             }
 
             if (defaultUnit == "oz" && targetUnit == "g")
             {
-                convertedTargetAmount = targetAmount / 28.35;
+                convertedTargetAmount = targetAmount / GramOunceMulpilier;
             }
 
             foreach (var nutrient in food.Nutrition.Nutrients)

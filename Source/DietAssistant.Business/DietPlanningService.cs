@@ -42,7 +42,13 @@ namespace DietAssistant.Business
                     .CreateWithError<DietPlanMacrosBreakdownResponse>(EvaluationTypes.NotFound, "Diet plan was not found.");
 
             var dayMealPlans = dietPlan.MealPlans
-                .GroupBy(mealPlan => mealPlan.DayOfWeek, (day, mealPlans) => new { Day = day, MealPlans = mealPlans });
+                .GroupBy(mealPlan => 
+                    mealPlan.DayOfWeek,
+                    (day, mealPlans) => new 
+                    {
+                        Day = day,
+                        MealPlans = mealPlans
+                    });
 
             return await GetResponse(dietPlan);
         }

@@ -35,13 +35,14 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<PagedResult<ProgressLogResponse>>(EvaluationTypes.InvalidParameters, "Invalid measurement type.");
 
-            var (progressLogs, totalCount) = await _progressLogRepository.GetProgressLogPagedAsync(
-                currentUserId.Value,
-                measurementType,
-                request.PeriodStart,
-                request.PeriodEnd,
-                request.Page,
-                request.PageSize);
+            var (progressLogs, totalCount) =
+                await _progressLogRepository.GetProgressLogPagedAsync(
+                    currentUserId.Value,
+                    measurementType,
+                    request.PeriodStart,
+                    request.PeriodEnd,
+                    request.Page,
+                    request.PageSize);
 
             return Result.Create(progressLogs.ToPagedResult(request.Page, request.PageSize, totalCount));
         }
