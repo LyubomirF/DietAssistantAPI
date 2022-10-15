@@ -47,10 +47,9 @@ namespace DietAssistant.Business
         {
             var foodId = int.Parse(id.Substring(1));
 
-            if (IsProduct(id))
-                return GetDetailsForProduct(foodId, request);
-
-            return GetDetailsForWholeFood(foodId, request);
+            return IsProduct(id) 
+                ? GetDetailsForProduct(foodId, request) 
+                : GetDetailsForWholeFood(foodId, request);
         }
 
         public async Task<Result<IReadOnlyCollection<FoodDetails>>> GetFoodsAsync(IEnumerable<ManyFoodDetailsRequest> requests)
