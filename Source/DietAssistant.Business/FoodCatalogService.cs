@@ -289,19 +289,19 @@ namespace DietAssistant.Business
                     Nutrition = new Nutrition
                     {
                         Nutrients = food.Nutrition.Nutrients
-                    .Select(x => new Nutrient
-                    {
-                        Amount = x.Amount.HasValue ? x.Amount.Value : 0,
-                        Name = x.Name,
-                        Unit = x.Unit,
-                    })
-                    .ToList(),
+                            .Select(x => new Nutrient
+                            {
+                                Amount = x.Amount.HasValue ? x.Amount.Value : 0,
+                                Name = x.Name,
+                                Unit = x.Unit,
+                            })
+                            .ToList(),
                     },
                     ServingInformation = new Serving
                     {
-                        Number = food.Servings.Number.HasValue ? food.Servings.Number.Value : 0,
+                        Number = food.Servings.Number ?? 0,
                         Unit = food.Servings.Unit,
-                        Size = food.Servings.Size.HasValue ? food.Servings.Size.Value : 0
+                        Size = food.Servings.Size ?? 0
                     },
                     PossibleUnits = food.Servings.Unit == "g" || food.Servings.Unit == "oz"
                     ? new List<string> { "g", "oz" }
