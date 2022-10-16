@@ -112,13 +112,20 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<FoodDetails>(EvaluationTypes.Failed, response.ErrorMessage);
 
-            var data = FoodJsonConverter.ParseProductJson(response.Content);
+            var food = FoodJsonConverter.ParseProductJson(response.Content);
 
-            if (data is null)
+            if (food is null)
                 return Result
                     .CreateWithError<FoodDetails>(EvaluationTypes.Failed, ResponseMessages.ActionFailed);
 
-            return CaculateFoodNutrition(data, request);
+            if (request is null || (string.IsNullOrEmpty(request.Unit) && !request.Amount.HasValue))
+                return Result.Create(food);
+
+            if (!food.IsUnitAllowed(request.Unit))
+                return Result
+                    .CreateWithError<FoodDetails>(EvaluationTypes.InvalidParameters, "Cannot convert to unit.");
+
+            return Result.Create(CaculateFoodNutrition(food, request));
         }
 
         private async Task<Result<FoodDetails>> GetDetailsForWholeFood(Int32 id, ServingRequest request)
@@ -157,19 +164,12 @@ namespace DietAssistant.Business
             return Result.Create(food);
         }
 
-        private Result<FoodDetails> CaculateFoodNutrition(FoodDetails food, ServingRequest request)
+        private FoodDetails CaculateFoodNutrition(FoodDetails food, ServingRequest request)
         {
-            if (request is null || (string.IsNullOrEmpty(request.Unit) && !request.Amount.HasValue))
-                return Result.Create(food);
-
-            if (!food.IsUnitAllowed(request.Unit))
-                return Result
-                    .CreateWithError<FoodDetails>(EvaluationTypes.InvalidParameters, "Cannot convert to unit.");
-
             var servingSize = food.ServingInformation.Size;
             var servingUnit = food.ServingInformation.Unit;
 
-            return Result.Create(food.CalculateNutrition(servingSize, servingUnit, request.Amount.Value, request.Unit));
+            return food.CalculateNutrition(servingSize, servingUnit, request.Amount.Value, request.Unit);
         }
 
         private Boolean IsProduct(String id) =>
