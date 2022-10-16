@@ -3,6 +3,7 @@ using DietAssistant.Business.Contracts.Models.FoodCatalog.Requests;
 using DietAssistant.Business.Contracts.Models.FoodCatalog.Responses;
 using DietAssistant.Business.Contracts.Models.FoodServing.Requests;
 using DietAssistant.Business.Contracts.Models.FoodServing.Responses;
+using DietAssistant.Business.Mappers;
 using DietAssistant.Business.Validation;
 using DietAssistant.Common;
 using DietAssistant.DataAccess.Contracts;
@@ -68,7 +69,7 @@ namespace DietAssistant.Business
 
             await _mealRepository.SaveEntityAsync(meal);
 
-            return Result.Create(GetFoodLogResponse(meal, foodResponse.Data, foodServing));
+            return Result.Create(foodServing.ToResponse(meal, foodResponse.Data));
         }
 
         public async Task<Result<FoodServingResponse>> UpdateFoodServingLogAsync(
@@ -113,7 +114,7 @@ namespace DietAssistant.Business
                return Result
                     .CreateWithErrors<FoodServingResponse>(foodResponse.EvaluationResult, foodResponse.Errors);
 
-            return Result.Create(GetFoodLogResponse(meal, foodResponse.Data, foodServing));
+            return Result.Create(foodServing.ToResponse(meal, foodResponse.Data));
         }
 
         public async Task<Result<Int32>> DeleteFoodServingLogAsync(Int32 mealId, Int32 foodServingId)
@@ -143,37 +144,6 @@ namespace DietAssistant.Business
             return result <= 0
                 ? Result.CreateWithError<Int32>(EvaluationTypes.Failed, ResponseMessages.CannotDeleteFoodServing)
                 : Result.Create(foodServingId);
-        }
-
-        private FoodServingResponse GetFoodLogResponse(Meal meal, FoodDetails food, FoodServing foodServing)
-        {
-            return new FoodServingResponse
-            {
-                MealId = meal.MealId,
-                MealOrder = meal.Order,
-                EatenOn = meal.EatenOn,
-                Food = new LoggedFoodServing
-                {
-                    FoodServingId = foodServing.FoodServingId,
-                    FoodId = food.FoodId,
-                    FoodName = food.FoodName,
-                    Nutrition = new LoggedNutrition
-                    {
-                        Calories = food.Nutrition.CalculateNutrientAmount(
-                            DietAssistantConstants.Calories,
-                            foodServing.NumberOfServings),
-                        Carbs = food.Nutrition.CalculateNutrientAmount(
-                            DietAssistantConstants.Carbohydrates,
-                            foodServing.NumberOfServings),
-                        Fat = food.Nutrition.CalculateNutrientAmount(
-                            DietAssistantConstants.Fat,
-                            foodServing.NumberOfServings),
-                        Protein = food.Nutrition.CalculateNutrientAmount(
-                            DietAssistantConstants.Protein,
-                            foodServing.NumberOfServings)
-                    }
-                }
-            };
         }
     }
 }
