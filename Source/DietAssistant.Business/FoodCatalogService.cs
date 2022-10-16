@@ -102,6 +102,25 @@ namespace DietAssistant.Business
                 _ => null
             };
 
+        private async Task<Result<FoodDetails>> GetDetailsForProduct(Int32 id, ServingRequest request)
+        {
+            var restRequest = new RestRequest(NutritionApiRoutes.GetProduct(id));
+
+            var response = await _restClient.GetAsync(restRequest);
+
+            if (!response.IsSuccessful)
+                return Result
+                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, response.ErrorMessage);
+
+            var data = FoodJsonConverter.ParseProductJson(response.Content);
+
+            if (data is null)
+                return Result
+                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, ResponseMessages.ActionFailed);
+
+            return CaculateFoodNutrition(data, request);
+        }
+
         private async Task<Result<FoodDetails>> GetDetailsForWholeFood(Int32 id, ServingRequest request)
         {
             var restRequest = new RestRequest(NutritionApiRoutes.GetIngredient(id));
@@ -138,28 +157,9 @@ namespace DietAssistant.Business
             return Result.Create(food);
         }
 
-        private async Task<Result<FoodDetails>> GetDetailsForProduct(Int32 id, ServingRequest request)
-        {
-            var restRequest = new RestRequest(NutritionApiRoutes.GetProduct(id));
-
-            var response = await _restClient.GetAsync(restRequest);
-
-            if (!response.IsSuccessful)
-                return Result
-                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, response.ErrorMessage);
-
-            var data = FoodJsonConverter.ParseProductJson(response.Content);
-
-            if (data is null)
-                return Result
-                    .CreateWithError<FoodDetails>(EvaluationTypes.Failed, ResponseMessages.ActionFailed);
-
-            return CaculateFoodNutrition(data, request);
-        }
-
         private Result<FoodDetails> CaculateFoodNutrition(FoodDetails food, ServingRequest request)
         {
-            if (request == null || (request.Unit == null && !request.Amount.HasValue))
+            if (request is null || (string.IsNullOrEmpty(request.Unit) && !request.Amount.HasValue))
                 return Result.Create(food);
 
             if (!food.IsUnitAllowed(request.Unit))

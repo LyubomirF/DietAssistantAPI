@@ -3,7 +3,6 @@ using DietAssistant.Business.Contracts.Models.FoodCatalog.Requests;
 using DietAssistant.Business.Contracts.Models.FoodCatalog.Responses;
 using DietAssistant.Business.Contracts.Models.FoodServing.Requests;
 using DietAssistant.Business.Contracts.Models.FoodServing.Responses;
-using DietAssistant.Business.Helpers;
 using DietAssistant.Business.Validation;
 using DietAssistant.Common;
 using DietAssistant.DataAccess.Contracts;

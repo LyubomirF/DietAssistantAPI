@@ -184,7 +184,7 @@ namespace DietAssistant.Business.Helpers
                         Nutrients = food.Nutrition.Nutrients
                     .Select(x => new Nutrient
                     {
-                        Amount = x.Amount.HasValue ? x.Amount.Value : 0,
+                        Amount = x.Amount ?? 0,
                         Name = x.Name,
                         Unit = x.Unit,
                     })

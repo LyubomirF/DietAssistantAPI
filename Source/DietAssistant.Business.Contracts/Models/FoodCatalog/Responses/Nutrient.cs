@@ -9,6 +9,5 @@ namespace DietAssistant.Business.Contracts.Models.FoodCatalog.Responses
         public double Amount { get; set; }
 
         public string Unit { get; set; }
-
     }
 }

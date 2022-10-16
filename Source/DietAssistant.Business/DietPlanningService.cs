@@ -430,7 +430,8 @@ namespace DietAssistant.Business
         private async Task<Result<List<DayTotalMacros>>> GetTotalMacrosPerDay(DietPlan dietPlan)
         {
             var dayMealPlans = dietPlan.MealPlans
-                .GroupBy(mealPlan => mealPlan.DayOfWeek, (day, mealPlans) => new { Day = day, MealPlans = mealPlans });
+                .GroupBy(mealPlan => mealPlan.DayOfWeek,
+                    (day, mealPlans) => new { Day = day, MealPlans = mealPlans });
 
             var result = new List<DayTotalMacros>();
 
@@ -466,10 +467,10 @@ namespace DietAssistant.Business
 
                         var food = foodResponse.Data;
 
-                        var foodCalories = food.GetNutrientAmount(DietAssistantConstants.Calories);
-                        var foodCarbs = food.GetNutrientAmount(DietAssistantConstants.Carbohydrates);
-                        var foodProtein = food.GetNutrientAmount(DietAssistantConstants.Protein);
-                        var foodFat = food.GetNutrientAmount(DietAssistantConstants.Fat);
+                        var foodCalories = food.Nutrition.GetNutrientAmount(DietAssistantConstants.Calories);
+                        var foodCarbs = food.Nutrition.GetNutrientAmount(DietAssistantConstants.Carbohydrates);
+                        var foodProtein = food.Nutrition.GetNutrientAmount(DietAssistantConstants.Protein);
+                        var foodFat = food.Nutrition.GetNutrientAmount(DietAssistantConstants.Fat);
 
                         dto.TotalCalories += foodCalories;
                         dto.TotalCarbs += foodCarbs;
