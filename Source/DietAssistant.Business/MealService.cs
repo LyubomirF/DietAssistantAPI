@@ -5,6 +5,7 @@ using DietAssistant.Business.Contracts.Models.FoodServing.Responses;
 using DietAssistant.Business.Contracts.Models.MealFoodLog.Requests;
 using DietAssistant.Business.Contracts.Models.MealFoodLog.Responses;
 using DietAssistant.Business.Helpers;
+using DietAssistant.Business.Mappers;
 using DietAssistant.Business.Validation;
 using DietAssistant.Common;
 using DietAssistant.DataAccess.Contracts;
@@ -80,7 +81,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithErrors<MealLogResponse>(foodsResponse.EvaluationResult, foodsResponse.Errors);
 
-            return Result.Create(GetMealLogResponse(meal.FoodServings, foodsResponse.Data, meal));
+            return Result.Create(meal.ToResponse(meal.FoodServings, foodsResponse.Data));
         }
 
         public async Task<Result<MealLogResponse>> LogMealAsync(LogMealRequest request)
@@ -141,7 +142,7 @@ namespace DietAssistant.Business
 
             await _mealRepository.SaveEntityAsync(newMeal);
 
-            return Result.Create(GetMealLogResponse(foodServings, foodsResponse.Data, newMeal));
+            return Result.Create(newMeal.ToResponse(foodServings, foodsResponse.Data));
         }
 
         public async Task<Result<MealLogResponse>> UpdateMealLogAsync(Int32 id, UpdateMealLogRequest request)
@@ -191,7 +192,7 @@ namespace DietAssistant.Business
 
             await _mealRepository.SaveEntityAsync(meal);
 
-            return Result.Create(GetMealLogResponse(meal.FoodServings, foodsResponse.Data, meal));
+            return Result.Create(meal.ToResponse(meal.FoodServings, foodsResponse.Data));
         }
 
         public async Task<Result<Int32>> DeleteMealAsync(Int32 id)
@@ -216,61 +217,6 @@ namespace DietAssistant.Business
                 : Result.Create(id);
         }
 
-        private MealLogResponse GetMealLogResponse(
-            IEnumerable<FoodServing> foodServings,
-            IReadOnlyCollection<FoodDetails> foods,
-            Meal meal)
-        {
-            var loggedFood = foodServings
-                .Select(fs => new
-                {
-                    FoodServing = fs,
-                    Food = foods.SingleOrDefault(x => x.FoodId == fs.FoodId)
-                })
-                .Select(x => new LoggedFoodServing
-                {
-                    FoodServingId = x.FoodServing.FoodServingId,
-                    FoodId = x.Food.FoodId,
-                    FoodName = x.Food.FoodName,
-                    Nutrition = new LoggedNutrition
-                    {
-                        Carbs = x.Food.Nutrition.CalculateNutrientAmount(
-                            DietAssistantConstants.Carbohydrates,
-                            x.FoodServing.NumberOfServings),
-                        Fat = x.Food.Nutrition.CalculateNutrientAmount(
-                            DietAssistantConstants.Fat,
-                            x.FoodServing.NumberOfServings),
-                        Protein = x.Food.Nutrition.CalculateNutrientAmount(
-                            DietAssistantConstants.Protein,
-                            x.FoodServing.NumberOfServings),
-                        Calories = x.Food.Nutrition.CalculateNutrientAmount(
-                            DietAssistantConstants.Calories,
-                            x.FoodServing.NumberOfServings),
-                    }
-                })
-                .ToList();
-
-            return new MealLogResponse
-            {
-                MealId = meal.MealId,
-                EatenOn = meal.EatenOn,
-                MealNumber = meal.Order,
-                Foods = loggedFood,
-                TotalCalories = loggedFood
-                    .Select(x => x.Nutrition.Calories)
-                    .Aggregate((x, y) => x + y),
-                TotalCarbs = loggedFood
-                    .Select(x => x.Nutrition.Carbs)
-                    .Aggregate((x, y) => x + y),
-                TotalFat = loggedFood
-                    .Select(x => x.Nutrition.Fat)
-                    .Aggregate((x, y) => x + y),
-                TotalProtein = loggedFood
-                    .Select(x => x.Nutrition.Protein)
-                    .Aggregate((x, y) => x + y),
-            };
-        }
-
         private async Task<Result<IEnumerable<MealLogResponse>>> GetMealLogResponses(IEnumerable<Meal> meals)
         {
             var result = new List<MealLogResponse>();
@@ -293,7 +239,7 @@ namespace DietAssistant.Business
                     return Result
                         .CreateWithErrors<IEnumerable<MealLogResponse>>(foodsResponse.EvaluationResult, foodsResponse.Errors);
 
-                result.Add(GetMealLogResponse(meal.FoodServings, foodsResponse.Data, meal));
+                result.Add(meal.ToResponse(meal.FoodServings, foodsResponse.Data));
             }
 
             return Result.Create(result.AsEnumerable());
