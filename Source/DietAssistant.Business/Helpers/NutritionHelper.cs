@@ -33,14 +33,14 @@ namespace DietAssistant.Business.Helpers
             food.ServingInformation = new Serving
             {
                 Number = 1,
-                Size = targetAmount,
+                Size = targetAmount, 
                 Unit = targetUnit
             };
 
             return food;
         }
 
-        public static Double CalculateNutrientAmount(
+        private static Double CalculateNutrientAmount(
             Double defautServingSize,
             Double defaultNutrientAmount,
             Double targetFoodAmount)
