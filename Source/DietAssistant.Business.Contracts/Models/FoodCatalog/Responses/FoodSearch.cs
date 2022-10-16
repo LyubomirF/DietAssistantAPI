@@ -1,4 +1,5 @@
-﻿namespace DietAssistant.Business.Contracts.Models.FoodCatalog.Responses
+﻿
+namespace DietAssistant.Business.Contracts.Models.FoodCatalog.Responses
 {
     public class FoodSearch
     {

@@ -234,20 +234,16 @@ namespace DietAssistant.Business
                     FoodName = x.Food.FoodName,
                     Nutrition = new LoggedNutrition
                     {
-                        Carbs = NutritionHelper.CalculateNutrientAmount(
-                            x.Food.Nutrition,
+                        Carbs = x.Food.Nutrition.CalculateNutrientAmount(
                             DietAssistantConstants.Carbohydrates,
                             x.FoodServing.NumberOfServings),
-                        Fat = NutritionHelper.CalculateNutrientAmount(
-                            x.Food.Nutrition,
+                        Fat = x.Food.Nutrition.CalculateNutrientAmount(
                             DietAssistantConstants.Fat,
                             x.FoodServing.NumberOfServings),
-                        Protein = NutritionHelper.CalculateNutrientAmount(
-                            x.Food.Nutrition,
+                        Protein = x.Food.Nutrition.CalculateNutrientAmount(
                             DietAssistantConstants.Protein,
                             x.FoodServing.NumberOfServings),
-                        Calories = NutritionHelper.CalculateNutrientAmount(
-                            x.Food.Nutrition,
+                        Calories = x.Food.Nutrition.CalculateNutrientAmount(
                             DietAssistantConstants.Calories,
                             x.FoodServing.NumberOfServings),
                     }

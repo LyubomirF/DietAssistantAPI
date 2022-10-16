@@ -40,16 +40,6 @@ namespace DietAssistant.Business.Helpers
             return food;
         }
 
-        public static Double CalculateNutrientAmount(Nutrition nutrition, String nutrientName, Double numberOfServings)
-        {
-            var nutrientInfo = nutrition.Nutrients.SingleOrDefault(x => x.Name == nutrientName);
-
-            if (nutrientInfo is null)
-                return 0;
-
-            return nutrientInfo.Amount * numberOfServings;
-        }
-
         public static Double CalculateNutrientAmount(
             Double defautServingSize,
             Double defaultNutrientAmount,

@@ -15,5 +15,8 @@ namespace DietAssistant.Business.Contracts.Models.FoodCatalog.Responses
         public List<String> PossibleUnits { get; set; }
 
         public String ImagePath { get; set; }
+
+        public Boolean IsUnitAllowed(string unit)
+            => PossibleUnits.Any() && PossibleUnits.Contains(unit);
     }
 }
