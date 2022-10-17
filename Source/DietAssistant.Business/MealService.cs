@@ -1,10 +1,7 @@
 ﻿using DietAssistant.Business.Contracts;
 using DietAssistant.Business.Contracts.Models.FoodCatalog.Requests;
-using DietAssistant.Business.Contracts.Models.FoodCatalog.Responses;
-using DietAssistant.Business.Contracts.Models.FoodServing.Responses;
 using DietAssistant.Business.Contracts.Models.MealFoodLog.Requests;
 using DietAssistant.Business.Contracts.Models.MealFoodLog.Responses;
-using DietAssistant.Business.Helpers;
 using DietAssistant.Business.Mappers;
 using DietAssistant.Business.Validation;
 using DietAssistant.Common;
@@ -20,22 +17,25 @@ namespace DietAssistant.Business
         private readonly IUserResolverService _userResolverService;
         private readonly IFoodCatalogService _foodCatalogService;
         private readonly IMealRepository _mealRepository;
+        private readonly IGoalRespository _goalRepository;
 
         public MealService(
             IUserResolverService userResolverService,
             IFoodCatalogService foodCatalogService,
-            IMealRepository mealRepository)
+            IMealRepository mealRepository,
+            IGoalRespository goalRespository)
         {
             _userResolverService = userResolverService;
             _foodCatalogService = foodCatalogService;
             _mealRepository = mealRepository;
+            _goalRepository = goalRespository;
         }
 
         public async Task<Result<IEnumerable<MealLogResponse>>> GetMealsOnDateAsync(DateTime? dateRequest)
         {
             if (!dateRequest.HasValue)
             {
-                dateRequest = DateTime.UtcNow;
+                dateRequest = DateTime.Today;
             }
 
             var currentUserId = _userResolverService.GetCurrentUserId();
@@ -46,7 +46,29 @@ namespace DietAssistant.Business
 
             var meals = await _mealRepository.GetMealsForDayAsync(dateRequest.Value, currentUserId.Value);
 
-            return await GetMealLogResponses(meals);
+            return Result.Create(await GetMealLogResponses(meals));
+        }
+
+        public async Task<Result<DayCaloriesProgress>> GetCaloriesBreakdownAsync(DateTime? date) 
+        {
+            if (!date.HasValue)
+            {
+                date = DateTime.Today;
+            }
+
+            var currentUserId = _userResolverService.GetCurrentUserId();
+
+            if (!currentUserId.HasValue)
+                return Result
+                    .CreateWithError<DayCaloriesProgress>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
+
+            var meals = await _mealRepository.GetMealsForDayAsync(date.Value, currentUserId.Value);
+
+            var mealsBreakdown = await GetMealLogResponses(meals);
+
+            var goal = await _goalRepository.GetGoalByUserIdAsync(currentUserId.Value);
+
+            return Result.Create(GetCaloriesBreakdown(mealsBreakdown, goal));
         }
 
         public async Task<Result<MealLogResponse>> GetMealById(Int32 id)
@@ -242,6 +264,31 @@ namespace DietAssistant.Business
             }
 
             return result.AsEnumerable();
+        }
+
+        private DayCaloriesProgress GetCaloriesBreakdown(IEnumerable<MealLogResponse> mealLogs, Goal goal)
+        {
+            var dayLoggedCalories = mealLogs
+                .Select(x => x.TotalCalories)
+                .Aggregate((x, y) => x + y);
+
+            var mealCalories = mealLogs
+                .Select(x => new MealCalories
+                {
+                    MealId = x.MealId,
+                    MealNumber = x.MealNumber,
+                    Calories = x.TotalCalories,
+                    PercentOfTotal = Math.Round(x.TotalCalories / dayLoggedCalories * 100, 2)
+                });
+
+            var dayCaloriesProgress = new DayCaloriesProgress
+            {
+                MealCalories = mealCalories,
+                LoggedCalories = dayLoggedCalories,
+                GoalCalories = goal.NutritionGoal.Calories,
+            };
+
+            return dayCaloriesProgress;
         }
     }
 }

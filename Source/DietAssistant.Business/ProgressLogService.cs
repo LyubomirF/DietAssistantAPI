@@ -49,6 +49,7 @@ namespace DietAssistant.Business
 
         public async Task<Result<ProgressLogResponse>> AddProgressLogAsync(AddProgressLogRequest request)
         {
+            //When weight progress log, calories should be recalculated
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
