@@ -217,7 +217,7 @@ namespace DietAssistant.Business
                 : Result.Create(id);
         }
 
-        private async Task<Result<IEnumerable<MealLogResponse>>> GetMealLogResponses(IEnumerable<Meal> meals)
+        private async Task<IEnumerable<MealLogResponse>> GetMealLogResponses(IEnumerable<Meal> meals)
         {
             var result = new List<MealLogResponse>();
 
@@ -236,13 +236,12 @@ namespace DietAssistant.Business
                 var foodsResponse = await _foodCatalogService.GetFoodsAsync(req);
 
                 if (foodsResponse.IsFailure())
-                    return Result
-                        .CreateWithErrors<IEnumerable<MealLogResponse>>(foodsResponse.EvaluationResult, foodsResponse.Errors);
+                    continue;
 
                 result.Add(meal.ToResponse(meal.FoodServings, foodsResponse.Data));
             }
 
-            return Result.Create(result.AsEnumerable());
+            return result.AsEnumerable();
         }
     }
 }
