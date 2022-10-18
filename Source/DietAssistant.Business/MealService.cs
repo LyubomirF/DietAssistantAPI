@@ -71,6 +71,26 @@ namespace DietAssistant.Business
             return Result.Create(GetCaloriesBreakdown(mealsBreakdown, goal));
         }
 
+        public async Task<Result<DayMacrosProgress>> GetMacrosBreakdownAsync(DateTime? date)
+        {
+            if (!date.HasValue)
+            {
+                date = DateTime.Today;
+            }
+
+            var currentUserId = _userResolverService.GetCurrentUserId();
+
+            if (!currentUserId.HasValue)
+                return Result
+                    .CreateWithError<DayMacrosProgress>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
+
+            var meals = await _mealRepository.GetMealsForDayAsync(date.Value, currentUserId.Value);
+            var mealsBreakdown = await GetMealLogResponses(meals);
+            var goal = await _goalRepository.GetGoalByUserIdAsync(currentUserId.Value);
+
+            return Result.Create(GetMacrosBreakdown(mealsBreakdown, goal));
+        }
+
         public async Task<Result<MealLogResponse>> GetMealById(Int32 id)
         {
             if (!Validate(id, out string error))
@@ -289,6 +309,55 @@ namespace DietAssistant.Business
             };
 
             return dayCaloriesProgress;
+        }
+
+        private DayMacrosProgress GetMacrosBreakdown(IEnumerable<MealLogResponse> mealLogs, Goal goal)
+        {
+            var dayLoggedCalories = mealLogs
+                .Select(x => x.TotalCalories)
+                .Aggregate((x, y) => x + y);
+
+            var carbsLogged = mealLogs
+                .Select(x => x.TotalCarbs)
+                .Aggregate((x, y) => x + y);
+
+            var proteinLogged = mealLogs
+                .Select(x => x.TotalProtein)
+                .Aggregate((x, y) => x + y);
+
+            var fatsLogged = mealLogs
+                .Select(x => x.TotalFat)
+                .Aggregate((x, y) => x + y);
+
+            var loggedCarbsPercentage = Math.Round(carbsLogged * 4 / dayLoggedCalories * 100, 2);
+            var loggedProteinPercentage = Math.Round(proteinLogged * 4 / dayLoggedCalories * 100, 2);
+            var loggedFatsPercentage = Math.Round(fatsLogged * 9 / dayLoggedCalories * 100, 2);
+
+            var goalCalories = goal.NutritionGoal.Calories;
+
+            var carbsGoalPercentage = goal.NutritionGoal.PercentCarbs;
+            var proteinGoalPercentage = goal.NutritionGoal.PercentProtein;
+            var fatsGoalPercentage = goal.NutritionGoal.PercentFat;
+
+            var carbsGoal = Math.Round(goalCalories * carbsGoalPercentage / 100 / 4, 2);
+            var proteinGoal = Math.Round(goalCalories * proteinGoalPercentage / 100 / 4, 2);
+            var fatsGoal = Math.Round(goalCalories * fatsGoalPercentage / 100 / 9, 2);
+
+            return new DayMacrosProgress
+            {
+                CarbsLogged = carbsLogged,
+                ProteinLogged = proteinLogged,
+                FatsLogged = fatsLogged,
+                CarbsPercentage = loggedCarbsPercentage,
+                ProteinPercentage = loggedProteinPercentage,
+                FatsPercentage = loggedFatsPercentage,
+                CarbsGoal = carbsGoal,
+                ProteinGoal = proteinGoal,
+                FatsGoal = fatsGoal,
+                CarbsGoalPercentage = carbsGoalPercentage,
+                ProteinGoalPercentage = proteinGoalPercentage,
+                FatsGoalPercentage = fatsGoalPercentage
+            };
         }
     }
 }
