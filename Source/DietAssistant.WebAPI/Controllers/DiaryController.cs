@@ -26,6 +26,14 @@ namespace DietAssistant.WebAPI.Controllers
         public async Task<IActionResult> GetMealsOnDate([FromQuery] DateTime? date)
             => await _mealService.GetMealsOnDateAsync(date).ToActionResultAsync(this);
 
+        [HttpGet(Calories)]
+        public async Task<IActionResult> GetCaloriesAsync([FromQuery] DateTime? date)
+            => await _mealService.GetCaloriesBreakdownAsync(date).ToActionResultAsync(this);
+
+        [HttpGet("macros")]
+        public async Task<IActionResult> GetMacrosAsync([FromQuery] DateTime? date)
+            => await _mealService.GetMacrosBreakdownAsync(date).ToActionResultAsync(this);
+
         [HttpGet(Meal)]
         public async Task<IActionResult> GetMealByIdAsync([FromRoute] Int32 mealId)
             => await _mealService.GetMealById(mealId).ToActionResultAsync(this);

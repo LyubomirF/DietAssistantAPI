@@ -13,6 +13,10 @@
     {
         public const String Diary = "diary";
 
+        public const String Calories = "calories";
+
+        public const String Macros = "macros";
+
         public const String Meals = "meals";
 
         public const String Meal = "meals/{mealId}";
