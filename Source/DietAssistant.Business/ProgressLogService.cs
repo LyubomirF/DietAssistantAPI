@@ -14,13 +14,21 @@ namespace DietAssistant.Business
     {
         private readonly IUserResolverService _userResolverService;
         private readonly IProgressLogRepository _progressLogRepository;
+        private readonly IUserStatsRepository _userStatsRepository;
+        private readonly IGoalRespository _goalRespository;
+        private readonly IWeightChangeService _weightChangeService;
 
         public ProgressLogService(
             IUserResolverService userResolverService,
-            IProgressLogRepository progressLogRepository)
+            IProgressLogRepository progressLogRepository,
+            IUserStatsRepository userStatsRepository,
+            IGoalRespository goalRepository,
+            IWeightChangeService weightChangeService)
         {
             _progressLogRepository = progressLogRepository;
             _userResolverService = userResolverService;
+            _userStatsRepository = userStatsRepository;
+            _weightChangeService = weightChangeService;
         }
 
         public async Task<Result<PagedResult<ProgressLogResponse>>> GetProgressLogsPagedAsync(ProgressLogFilterRequest request)
@@ -60,13 +68,32 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<ProgressLogResponse>(EvaluationTypes.InvalidParameters, "Invalid measurement type.");
 
-            var newLog = new ProgressLog 
+            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+
+            if (userStats is null)
+                return Result
+                    .CreateWithError<ProgressLogResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+
+            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+
+            if (goal is null)
+                return Result
+                    .CreateWithError<ProgressLogResponse>(EvaluationTypes.NotFound, "Goal of user was not found.");
+
+            var newLog = new ProgressLog
             {
                 Measurement = request.Measurement,
                 MeasurementType = measurementType,
-                LoggedOn =request.Date,
+                LoggedOn = request.Date.Date,
                 UserId = currentUserId.Value
             };
+
+            if (measurementType == MeasurementType.Weight)
+            {
+                await _weightChangeService.HandleWeightChange(currentUserId.Value, request.Measurement, goal, userStats);
+
+                return Result.Create(newLog.ToResponse());
+            }
 
             await _progressLogRepository.SaveEntityAsync(newLog);
 
@@ -89,5 +116,6 @@ namespace DietAssistant.Business
                 ? Result.CreateWithError<Int32>(EvaluationTypes.Failed, "Cound not delete progress log.")
                 : Result.Create(progressLogId);
         }
+
     }
 }

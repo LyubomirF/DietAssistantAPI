@@ -216,22 +216,11 @@ namespace DietAssistant.Business
 
             await _userStatsRepository.SaveEntityAsync(userStats);
 
-            var heightCm = userStats.GetHeightInCentimeters();
-            var weightKg = userStats.GetWeightInKg();
-
-            var dailyCalories = CalculateDailyCalories(
-                heightCm,
-                weightKg,
-                userStats.DateOfBirth.ToAge(DateTime.Today),
-                userStats.Gender,
-                goal.ActivityLevel, 
-                goal.WeeklyGoal);
-
             goal.CurrentWeight = weight;
 
             var newNutritionGoal = new NutritionGoal
             {
-                Calories = dailyCalories,
+                Calories = CalculateCalories(userStats, goal),
                 PercentProtein = goal.NutritionGoal.PercentProtein,
                 PercentCarbs = goal.NutritionGoal.PercentCarbs,
                 PercentFat = goal.NutritionGoal.PercentFat,

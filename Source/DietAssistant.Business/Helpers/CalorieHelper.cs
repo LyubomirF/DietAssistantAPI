@@ -1,4 +1,6 @@
-﻿using DietAssistant.Domain.Enums;
+﻿using DietAssistant.Business.Extentions;
+using DietAssistant.Domain;
+using DietAssistant.Domain.Enums;
 
 namespace DietAssistant.Business.Helpers
 {
@@ -8,6 +10,20 @@ namespace DietAssistant.Business.Helpers
         private const Double LightlyActiveMultiplier = 1.375;
         private const Double ActiveMultiplier = 1.55;
         private const Double VeryActiveMultiplier = 1.725;
+
+        public static Double CalculateCalories(UserStats userStats, Goal goal)
+        {
+            var heightCm = userStats.GetHeightInCentimeters();
+            var weightKg = userStats.GetWeightInKg();
+
+            return CalculateDailyCalories(
+                    heightCm,
+                    weightKg,
+                    userStats.DateOfBirth.ToAge(DateTime.Today),
+                    userStats.Gender,
+                    goal.ActivityLevel,
+                    goal.WeeklyGoal);
+        }
 
         public static Double CalculateDailyCalories(
             Double heightCm,

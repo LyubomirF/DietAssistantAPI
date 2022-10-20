@@ -16,6 +16,15 @@ namespace DietAssistant.DataAccess.Repositories
                 .Include(x => x.NutritionGoal)
                 .SingleOrDefaultAsync(x => x.UserId == userId);
 
+        public async Task<Goal> UpdateWithNutritionGoal(Goal goal, NutritionGoal nutritionGoal)
+        {
+            goal.NutritionGoal = nutritionGoal;
+            _dbContext.Set<Goal>().Update(goal);
+            await _dbContext.SaveChangesAsync();
+
+            return goal;
+        }
+
         Task<Goal> IRepository<Goal>.GetByIdAsync(int id)
             => GetByIdAsync(id);
     }
