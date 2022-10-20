@@ -81,7 +81,9 @@ namespace DietAssistant.Business
                 Calories = CalculateCalories(userStats, goal),
                 PercentCarbs = goal.NutritionGoal.PercentCarbs,
                 PercentProtein = goal.NutritionGoal.PercentProtein,
-                PercentFat = goal.NutritionGoal.PercentFat
+                PercentFat = goal.NutritionGoal.PercentFat,
+                ChangedOnUTC = DateTime.UtcNow,
+                UserId = currentUserId.Value
             };
 
             goal.NutritionGoal = nutritionGoal;
@@ -92,7 +94,8 @@ namespace DietAssistant.Business
             {
                 Measurement = request.CurrentWeight,
                 MeasurementType = MeasurementType.Weight,
-                LoggedOn = DateTime.Now
+                LoggedOn = DateTime.Now,
+                UserId = currentUserId.Value
             };
 
             await _progressLogRepository.SaveEntityAsync(log);
@@ -136,7 +139,8 @@ namespace DietAssistant.Business
                     PercentCarbs = goal.NutritionGoal.PercentCarbs,
                     PercentProtein = goal.NutritionGoal.PercentProtein,
                     PercentFat = goal.NutritionGoal.PercentFat,
-                    ChangedOnUTC = DateTime.UtcNow
+                    ChangedOnUTC = DateTime.UtcNow,
+                    UserId = currentUserId.Value
                 };
 
                 goal.NutritionGoal = nutritionGoal;
@@ -178,7 +182,8 @@ namespace DietAssistant.Business
                 PercentCarbs = goal.NutritionGoal.PercentCarbs,
                 PercentProtein = goal.NutritionGoal.PercentProtein,
                 PercentFat = goal.NutritionGoal.PercentFat,
-                ChangedOnUTC = DateTime.UtcNow
+                ChangedOnUTC = DateTime.UtcNow,
+                UserId = currentUserId.Value
             };
 
             goal.NutritionGoal = nutritionGoal;
@@ -219,7 +224,8 @@ namespace DietAssistant.Business
                 PercentCarbs = goal.NutritionGoal.PercentCarbs,
                 PercentProtein = goal.NutritionGoal.PercentProtein,
                 PercentFat = goal.NutritionGoal.PercentFat,
-                ChangedOnUTC = DateTime.UtcNow
+                ChangedOnUTC = DateTime.UtcNow,
+                UserId = currentUserId.Value
             };
 
             goal.NutritionGoal = nutritionGoal;
@@ -251,7 +257,8 @@ namespace DietAssistant.Business
                 PercentCarbs = request.PercentCarbs,
                 PercentProtein = request.PercentProtein,
                 PercentFat = request.PercentFat,
-                ChangedOnUTC = DateTime.UtcNow
+                ChangedOnUTC = DateTime.UtcNow,
+                UserId = currentUserId.Value
             };
 
             goal.NutritionGoal = nutritionGoal;
