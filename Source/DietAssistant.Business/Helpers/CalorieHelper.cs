@@ -6,12 +6,15 @@ namespace DietAssistant.Business.Helpers
 {
     internal class CalorieHelper
     {
+        private const Double MaintainLimitInPounds = 1;
+        private const Double MaintainLimitInKg = 0.5;
+
         private const Double SedentaryMultiplier = 1.2;
         private const Double LightlyActiveMultiplier = 1.375;
         private const Double ActiveMultiplier = 1.55;
         private const Double VeryActiveMultiplier = 1.725;
 
-        public static Double CalculateCalories(UserStats userStats, Goal goal)
+        public static Double CalculateDailyCalories(UserStats userStats, Goal goal)
         {
             var heightCm = userStats.GetHeightInCentimeters();
             var weightKg = userStats.GetWeightInKg();
@@ -58,5 +61,40 @@ namespace DietAssistant.Business.Helpers
                 WeeklyGoal.ModerateWeightGain => expenditure + 500
             };
         }
+
+        public static WeeklyGoal ChangeWeeklyGoal(Double currentWeight, Double goalWeight, WeeklyGoal previousGoal, WeightUnit unit)
+        {
+            if (ShouldMaintainWeight(currentWeight, goalWeight, unit))
+            {
+                return WeeklyGoal.MaintainWeight;
+            }
+
+            if (goalWeight > currentWeight
+                && previousGoal >= WeeklyGoal.MaintainWeight
+                && previousGoal <= WeeklyGoal.ExtremeWeightLoss)
+            {
+                return WeeklyGoal.SlowWeightGain;
+            }
+
+            if (goalWeight < currentWeight
+                && previousGoal >= WeeklyGoal.SlowWeightGain
+                && previousGoal <= WeeklyGoal.ModerateWeightGain)
+            {
+                return WeeklyGoal.ModerateWeightLoss;
+            }
+
+            return previousGoal;
+        }
+
+        private static bool ShouldMaintainWeight(Double currentWeight, Double goalWeight, WeightUnit unit)
+            => unit switch
+            {
+                WeightUnit.Kilograms =>
+                    goalWeight <= currentWeight + MaintainLimitInKg
+                    && goalWeight >= currentWeight - MaintainLimitInKg,
+                WeightUnit.Pounds =>
+                    goalWeight <= currentWeight + MaintainLimitInPounds
+                    && goalWeight >= currentWeight - MaintainLimitInPounds
+            };
     }
 }

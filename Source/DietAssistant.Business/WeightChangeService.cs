@@ -10,9 +10,6 @@ namespace DietAssistant.Business
 
     public class WeightChangeService : IWeightChangeService
     {
-        private const Double MaintainLimitInPounds = 1;
-        private const Double MaintainLimitInKg = 0.5;
-
         private readonly IGoalRespository _goalRespository;
         private readonly IProgressLogRepository _progressLogRepository;
         private readonly IUserStatsRepository _userStatsRepository;
@@ -40,7 +37,7 @@ namespace DietAssistant.Business
 
             var nutritionGoal = new Domain.NutritionGoal
             {
-                Calories = CalculateCalories(userStats, goal),
+                Calories = CalculateDailyCalories(userStats, goal),
                 PercentCarbs = goal.NutritionGoal.PercentCarbs,
                 PercentProtein = goal.NutritionGoal.PercentProtein,
                 PercentFat = goal.NutritionGoal.PercentFat,
@@ -65,69 +62,5 @@ namespace DietAssistant.Business
             userStats.Weight = weight;
             await _userStatsRepository.SaveEntityAsync(userStats);
         }
-
-        public async Task HandleGoalWeightChange(Int32 userId, Double goalWeight, Goal goal, UserStats userStats)
-        {
-            var previousGoal = goal.WeeklyGoal;
-
-            goal.GoalWeight = goalWeight;
-            goal.WeeklyGoal = ChangeWeeklyGoal(
-                goal.CurrentWeight,
-                goal.GoalWeight,
-                previousGoal,
-                userStats.WeightUnit);
-
-            if (previousGoal != goal.WeeklyGoal)
-            {
-                var nutritionGoal = new Domain.NutritionGoal
-                {
-                    Calories = CalculateCalories(userStats, goal),
-                    PercentCarbs = goal.NutritionGoal.PercentCarbs,
-                    PercentProtein = goal.NutritionGoal.PercentProtein,
-                    PercentFat = goal.NutritionGoal.PercentFat,
-                    ChangedOnUTC = DateTime.UtcNow,
-                    UserId = userId
-                };
-
-                goal.NutritionGoal = nutritionGoal;
-            }
-
-            await _goalRespository.SaveEntityAsync(goal);
-        }
-
-        private WeeklyGoal ChangeWeeklyGoal(Double currentWeight, Double goalWeight, WeeklyGoal previousGoal, WeightUnit unit)
-        {
-            if (ShouldMaintainWeight(currentWeight, goalWeight, unit))
-            {
-                return WeeklyGoal.MaintainWeight;
-            }
-
-            if (goalWeight > currentWeight
-                && previousGoal >= WeeklyGoal.MaintainWeight
-                && previousGoal <= WeeklyGoal.ExtremeWeightLoss)
-            {
-                return WeeklyGoal.SlowWeightGain;
-            }
-
-            if (goalWeight < currentWeight
-                && previousGoal >= WeeklyGoal.SlowWeightGain
-                && previousGoal <= WeeklyGoal.ModerateWeightGain)
-            {
-                return WeeklyGoal.ModerateWeightLoss;
-            }
-
-            return previousGoal;
-        }
-
-        private bool ShouldMaintainWeight(Double currentWeight, Double goalWeight, WeightUnit unit)
-            => unit switch
-            {
-                WeightUnit.Kilograms =>
-                    goalWeight <= currentWeight + MaintainLimitInKg
-                    && goalWeight >= currentWeight - MaintainLimitInKg,
-                WeightUnit.Pounds =>
-                    goalWeight <= currentWeight + MaintainLimitInPounds
-                    && goalWeight >= currentWeight - MaintainLimitInPounds
-            };
     }
 }

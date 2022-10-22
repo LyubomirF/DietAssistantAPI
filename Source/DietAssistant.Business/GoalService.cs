@@ -6,33 +6,30 @@ using DietAssistant.Business.Helpers;
 using DietAssistant.Business.Mappers;
 using DietAssistant.Common;
 using DietAssistant.DataAccess.Contracts;
-using DietAssistant.Domain;
 using DietAssistant.Domain.Enums;
 
 namespace DietAssistant.Business
 {
     using static CalorieHelper;
+    using static UnitConvert;
 
     public class GoalService : IGoalService
     {
         private readonly IUserResolverService _userResolverService;
+        private readonly IUserRepository _userRepository;
         private readonly IGoalRespository _goalRespository;
-        private readonly IProgressLogRepository _progressLogRepository;
         private readonly IUserStatsRepository _userStatsRepository;
-        private readonly IWeightChangeService _weightChangeService;
 
         public GoalService(
             IUserResolverService userResolverService,
+            IUserRepository userRepository,
             IGoalRespository goalRespository,
-            IProgressLogRepository progressLogRepository,
-            IUserStatsRepository userStatsRepository,
-            IWeightChangeService weightChangeService)
+            IUserStatsRepository userStatsRepository)
         {
             _userResolverService = userResolverService;
+            _userRepository = userRepository;
             _goalRespository = goalRespository;
-            _progressLogRepository = progressLogRepository;
             _userStatsRepository = userStatsRepository;
-            _weightChangeService = weightChangeService;
         }
 
         public async Task<Result<GoalResponse>> GetGoalAsync()
@@ -60,19 +57,37 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
 
-            if (userStats is null)
-                return Result
-                    .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+            var weeklyGoal = ChangeWeeklyGoal(
+                request.CurrentWeight,
+                user.Goal.GoalWeight,
+                user.Goal.WeeklyGoal,
+                user.UserStats.WeightUnit);
 
-            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+            var height = user.UserStats.Height;
+            var weight = request.CurrentWeight;
+            var heightUnit = user.UserStats.HeightUnit;
+            var weightUnit = user.UserStats.WeightUnit;
+            var age = user.UserStats.DateOfBirth.ToAge(DateTime.Now.Date);
 
-            await _weightChangeService.HandleWeightChange(currentUserId.Value, request.CurrentWeight, goal, userStats);
+            var calories = CalculateDailyCalories(
+                heightUnit == HeightUnit.FeetInches ? ToCentimeters(height) : height,
+                weightUnit == WeightUnit.Pounds ? ToKgs(weight) : weight,
+                age,
+                user.UserStats.Gender,
+                user.Goal.ActivityLevel,
+                weeklyGoal);
 
-            var updatedGoal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+            var updatedUser = await _userRepository.UpdateCurrentWeightAsync(
+                user,
+                request.CurrentWeight,
+                weeklyGoal,
+                calories);
 
-            return Result.Create(updatedGoal.ToResponse());
+            var goal = updatedUser.Goal;
+
+            return Result.Create(goal.ToResponse());
         }
 
         public async Task<Result<GoalResponse>> ChangeGoalWeightAsync(ChangeGoalWeightRequest request)
@@ -83,18 +98,31 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+            var weeklyGoal = ChangeWeeklyGoal(
+                user.UserStats.Weight,
+                request.GoalWeight,
+                user.Goal.WeeklyGoal,
+                user.UserStats.WeightUnit);
 
-            if (userStats is null)
-                return Result
-                    .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+            var height = user.UserStats.Height;
+            var weight = user.UserStats.Weight;
+            var heightUnit = user.UserStats.HeightUnit;
+            var weightUnit = user.UserStats.WeightUnit;
+            var age = user.UserStats.DateOfBirth.ToAge(DateTime.Now.Date);
 
-            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+            var calories = CalculateDailyCalories(
+                heightUnit == HeightUnit.FeetInches ? ToCentimeters(height) : height,
+                weightUnit == WeightUnit.Pounds ? ToKgs(weight) : weight,
+                age,
+                user.UserStats.Gender,
+                user.Goal.ActivityLevel,
+                weeklyGoal);
 
-            await _weightChangeService.HandleGoalWeightChange(currentUserId.Value, request.GoalWeight, goal, userStats);
+            var updatedUser = await _userRepository.UpdateGoalWeightAsync(user, request.GoalWeight, weeklyGoal, calories);
 
-            var updatedGoal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
-            return Result.Create(updatedGoal.ToResponse());
+            var goal = updatedUser.Goal;
+            return Result.Create(goal.ToResponse());
         }
 
         public async Task<Result<GoalResponse>> ChangeWeeklyGoalAsync(ChangeWeeklyGoalRequest request)
@@ -109,32 +137,22 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+            var userGoal = user.Goal;
 
-            if (userStats is null)
-                return Result
-                    .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+            if (userGoal.WeeklyGoal == weeklyGoal)
+                return Result.Create(userGoal.ToResponse());
 
-            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+            var calories = CalculateDailyCalories(
+                user.UserStats.GetHeightInCentimeters(),
+                user.UserStats.GetWeightInKg(),
+                user.UserStats.DateOfBirth.ToAge(DateTime.Now.Date),
+                user.UserStats.Gender,
+                user.Goal.ActivityLevel,
+                weeklyGoal);
 
-            if (goal.WeeklyGoal == weeklyGoal)
-                return Result.Create(goal.ToResponse());
-
-            goal.WeeklyGoal = weeklyGoal;
-
-            var nutritionGoal = new Domain.NutritionGoal
-            {
-                Calories = CalculateCalories(userStats, goal),
-                PercentCarbs = goal.NutritionGoal.PercentCarbs,
-                PercentProtein = goal.NutritionGoal.PercentProtein,
-                PercentFat = goal.NutritionGoal.PercentFat,
-                ChangedOnUTC = DateTime.UtcNow,
-                UserId = currentUserId.Value
-            };
-
-            goal.NutritionGoal = nutritionGoal;
-
-            await _goalRespository.SaveEntityAsync(goal);
+            var updatedUser = await _userRepository.UpdateWeeklyGoalAsync(user, weeklyGoal, calories);
+            var goal = updatedUser.Goal;
 
             return Result.Create(goal.ToResponse());
         }
@@ -157,26 +175,22 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
-            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+            var userGoal = user.Goal;
 
-            if (goal.ActivityLevel == activityLevel)
-                return Result.Create(goal.ToResponse());
+            if (userGoal.ActivityLevel == activityLevel)
+                return Result.Create(userGoal.ToResponse());
 
-            goal.ActivityLevel = activityLevel;
+            var calories = CalculateDailyCalories(
+                user.UserStats.GetHeightInCentimeters(),
+                user.UserStats.GetWeightInKg(),
+                user.UserStats.DateOfBirth.ToAge(DateTime.Now.Date),
+                user.UserStats.Gender,
+                activityLevel,
+                user.Goal.WeeklyGoal);
 
-            var nutritionGoal = new Domain.NutritionGoal
-            {
-                Calories = CalculateCalories(userStats, goal),
-                PercentCarbs = goal.NutritionGoal.PercentCarbs,
-                PercentProtein = goal.NutritionGoal.PercentProtein,
-                PercentFat = goal.NutritionGoal.PercentFat,
-                ChangedOnUTC = DateTime.UtcNow,
-                UserId = currentUserId.Value
-            };
-
-            goal.NutritionGoal = nutritionGoal;
-
-            await _goalRespository.SaveEntityAsync(goal);
+            var updatedUser = await _userRepository.UpdateActivityLevelAsync(user, activityLevel, calories);
+            var goal = updatedUser.Goal;
 
             return Result.Create(goal.ToResponse());
         }
@@ -189,13 +203,12 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
-
-            if (userStats is null)
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+            if (user.UserStats is null)
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
-            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+            var userGoal = user.Goal;
 
             var nutritionGoal = new Domain.NutritionGoal
             {
@@ -207,9 +220,8 @@ namespace DietAssistant.Business
                 UserId = currentUserId.Value
             };
 
-            goal.NutritionGoal = nutritionGoal;
-
-            await _goalRespository.SaveEntityAsync(goal);
+            var updatedUser = await _userRepository.UpdateNutritionGoalAsync(user, nutritionGoal);
+            var goal = updatedUser.Goal;
 
             return Result.Create(goal.ToResponse());
         }

@@ -12,6 +12,7 @@ using DietAssistant.Domain.Enums;
 namespace DietAssistant.Business
 {
     using static CalorieHelper;
+    using static UnitConvert;
 
     public class UserStatsService : IUserStatsService
     {
@@ -136,7 +137,6 @@ namespace DietAssistant.Business
             if (request.HeightUnit == userStats.HeightUnit)
                 return Result.Create(userStats.ToResponse());
 
-            var height = userStats.Height;
             userStats.HeightUnit = request.HeightUnit;
 
             userStats.Height = userStats.HeightUnit == HeightUnit.Centimeters
@@ -220,7 +220,7 @@ namespace DietAssistant.Business
 
             var newNutritionGoal = new NutritionGoal
             {
-                Calories = CalculateCalories(userStats, goal),
+                Calories = CalculateDailyCalories(userStats, goal),
                 PercentProtein = goal.NutritionGoal.PercentProtein,
                 PercentCarbs = goal.NutritionGoal.PercentCarbs,
                 PercentFat = goal.NutritionGoal.PercentFat,
@@ -403,11 +403,7 @@ namespace DietAssistant.Business
             return Result.Create(userStats.ToResponse());
         }
 
-        private Double ConvertWeight(Double weight, WeightUnit unit)
+        private static Double ConvertWeight(Double weight, WeightUnit unit)
             => unit == WeightUnit.Kilograms ? ToKgs(weight) : ToPounds(weight);
-
-        private Double ToKgs(Double weightInPounds) => Math.Round(weightInPounds / 2.205, 2);
-        private Double ToPounds(Double weightInKg) => Math.Round(2.205 * weightInKg, 2);
-        private Double ToCentimeters(Double heightInInches) => Math.Round(2.54 * heightInInches, 2);
     }
 }
