@@ -27,7 +27,10 @@ namespace DietAssistant.DataAccess.Repositories
             return await _dbContext.Users
                 .Include(x => x.Goal)
                     .ThenInclude(x => x.NutritionGoal)
-                .Include(x => x.ProgressLogs.Where(x => x.LoggedOn >= DateTime.Now.AddDays(-30)))
+                .Include(x => x.ProgressLogs
+                    .Where(x => x.LoggedOn >= DateTime.Now.AddDays(-30))
+                    .OrderBy(x => x.LoggedOn.Date)
+                    .ThenByDescending(x => x.LoggedOn.Millisecond))
                 .Include(x => x.DietPlans)
                 .Include(x => x.Meals)
                 .Include(x => x.UserStats)
@@ -61,7 +64,7 @@ namespace DietAssistant.DataAccess.Repositories
             {
                 Measurement = weight,
                 MeasurementType = MeasurementType.Weight,
-                LoggedOn = DateTime.Now.Date,
+                LoggedOn = DateTime.Now,
                 UserId = user.UserId
             };
 
@@ -70,7 +73,7 @@ namespace DietAssistant.DataAccess.Repositories
 
             await SaveEntityAsync(user);
 
-            return user;
+            return await GetUserByIdAsync(user.UserId);
         }
 
         public async Task<User> UpdateGoalWeightAsync(

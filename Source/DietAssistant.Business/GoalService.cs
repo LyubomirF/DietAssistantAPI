@@ -169,13 +169,14 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+
+            var userStats = user.UserStats;
 
             if (userStats is null)
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
-            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
             var userGoal = user.Goal;
 
             if (userGoal.ActivityLevel == activityLevel)
@@ -204,11 +205,10 @@ namespace DietAssistant.Business
                     .CreateWithError<GoalResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
             var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+
             if (user.UserStats is null)
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
-
-            var userGoal = user.Goal;
 
             var nutritionGoal = new Domain.NutritionGoal
             {

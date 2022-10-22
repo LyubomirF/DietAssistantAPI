@@ -13,11 +13,7 @@ namespace DietAssistant.DataAccess.Contracts
             Int32 page,
             Int32 pageSize);
 
-        Task<IEnumerable<ProgressLog>> GetProgressLogsAsync(Int32 userId, MeasurementType type);
-
         Task<ProgressLog> GetProgressLogAsync(Int32 userId, Int32 progressLogId);
-
-        Task UpdateRangeAsync(IEnumerable<ProgressLog> progressLogs);
 
         Task<Int32> DeleteProgressLog(ProgressLog progressLog);
     }

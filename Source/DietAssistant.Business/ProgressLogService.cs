@@ -2,6 +2,8 @@
 using DietAssistant.Business.Contracts.Models.Paging;
 using DietAssistant.Business.Contracts.Models.ProgressLog.Requests;
 using DietAssistant.Business.Contracts.Models.ProgressLog.Responses;
+using DietAssistant.Business.Extentions;
+using DietAssistant.Business.Helpers;
 using DietAssistant.Business.Mappers;
 using DietAssistant.Common;
 using DietAssistant.DataAccess.Contracts;
@@ -10,25 +12,23 @@ using DietAssistant.Domain.Enums;
 
 namespace DietAssistant.Business
 {
+    using static CalorieHelper;
+    using static UnitConvert;
+
     public class ProgressLogService : IProgressLogService
     {
         private readonly IUserResolverService _userResolverService;
         private readonly IProgressLogRepository _progressLogRepository;
-        private readonly IUserStatsRepository _userStatsRepository;
-        private readonly IGoalRespository _goalRespository;
-        private readonly IWeightChangeService _weightChangeService;
+        private readonly IUserRepository _userRepository;
 
         public ProgressLogService(
             IUserResolverService userResolverService,
-            IProgressLogRepository progressLogRepository,
-            IUserStatsRepository userStatsRepository,
-            IGoalRespository goalRepository,
-            IWeightChangeService weightChangeService)
+            IUserRepository userRepository,
+            IProgressLogRepository progressLogRepository)
         {
             _progressLogRepository = progressLogRepository;
             _userResolverService = userResolverService;
-            _userStatsRepository = userStatsRepository;
-            _weightChangeService = weightChangeService;
+            _userRepository = userRepository;
         }
 
         public async Task<Result<PagedResult<ProgressLogResponse>>> GetProgressLogsPagedAsync(ProgressLogFilterRequest request)
@@ -39,7 +39,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<PagedResult<ProgressLogResponse>>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            if(!Enum.TryParse(request.MeasurementType, out MeasurementType measurementType))
+            if (!Enum.TryParse(request.MeasurementType, out MeasurementType measurementType))
                 return Result
                     .CreateWithError<PagedResult<ProgressLogResponse>>(EvaluationTypes.InvalidParameters, "Invalid measurement type.");
 
@@ -57,7 +57,6 @@ namespace DietAssistant.Business
 
         public async Task<Result<ProgressLogResponse>> AddProgressLogAsync(AddProgressLogRequest request)
         {
-            //When weight progress log, calories should be recalculated
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
@@ -68,32 +67,50 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<ProgressLogResponse>(EvaluationTypes.InvalidParameters, "Invalid measurement type.");
 
-            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+            var userStats = user.UserStats;
 
             if (userStats is null)
                 return Result
                     .CreateWithError<ProgressLogResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
-            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+            if (measurementType == MeasurementType.Weight)
+            {
+                var weeklyGoal = ChangeWeeklyGoal(
+                    request.Measurement,
+                    user.Goal.GoalWeight,
+                    user.Goal.WeeklyGoal,
+                    user.UserStats.WeightUnit);
 
-            if (goal is null)
-                return Result
-                    .CreateWithError<ProgressLogResponse>(EvaluationTypes.NotFound, "Goal of user was not found.");
+                var height = user.UserStats.Height;
+                var weight = request.Measurement;
+                var heightUnit = user.UserStats.HeightUnit;
+                var weightUnit = user.UserStats.WeightUnit;
+                var age = user.UserStats.DateOfBirth.ToAge(DateTime.Today);
 
+                var calories = CalculateDailyCalories(
+                    heightUnit == HeightUnit.FeetInches ? ToCentimeters(height) : height,
+                    weightUnit == WeightUnit.Pounds ? ToKgs(weight) : weight,
+                    age,
+                    user.UserStats.Gender,
+                    user.Goal.ActivityLevel,
+                    weeklyGoal);
+
+                var updatedUser = await _userRepository.UpdateCurrentWeightAsync(user, request.Measurement, weeklyGoal, calories);
+                var lastLog = updatedUser.ProgressLogs.LastOrDefault();
+
+                return lastLog is null
+                    ? Result.CreateWithError<ProgressLogResponse>(EvaluationTypes.Failed, "Error occured.")
+                    : Result.Create(lastLog.ToResponse());
+            }
+        
             var newLog = new ProgressLog
             {
                 Measurement = request.Measurement,
                 MeasurementType = measurementType,
-                LoggedOn = request.Date.Date,
+                LoggedOn = request.Date.Date.Add(DateTime.Now.TimeOfDay),
                 UserId = currentUserId.Value
             };
-
-            if (measurementType == MeasurementType.Weight)
-            {
-                await _weightChangeService.HandleWeightChange(currentUserId.Value, request.Measurement, goal, userStats);
-
-                return Result.Create(newLog.ToResponse());
-            }
 
             await _progressLogRepository.SaveEntityAsync(newLog);
 

@@ -22,22 +22,13 @@ namespace DietAssistant.Business
 
         private readonly IUserResolverService _userResolverService;
         private readonly IUserRepository _userRepository;
-        private readonly IUserStatsRepository _userStatsRepository;
-        private readonly IGoalRespository _goalRespository;
-        private readonly IProgressLogRepository _progressLogRepository;
 
         public UserStatsService(
             IUserResolverService userResolverService,
-            IUserRepository userRepository,
-            IUserStatsRepository userStatsRepository,
-            IGoalRespository goalRespository,
-            IProgressLogRepository progressLogRepository)
+            IUserRepository userRepository)
         {
             _userResolverService = userResolverService;
             _userRepository = userRepository;
-            _userStatsRepository = userStatsRepository;
-            _goalRespository = goalRespository;
-            _progressLogRepository = progressLogRepository;
         }
 
         public async Task<Result<UserStatsResponse>> GetUserStats()
@@ -48,7 +39,8 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+            var userStats = user.UserStats;
 
             if (userStats is null)
                 return Result
@@ -225,7 +217,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var user = await _userRepository.GetByIdAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
             var userStats = user.UserStats;
 
             if (userStats is null)
@@ -257,7 +249,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var user = await _userRepository.GetByIdAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
             var userStats = user.UserStats;
 
             if (userStats is null)
@@ -287,7 +279,7 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var user = await _userRepository.GetByIdAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
             var userStats = user.UserStats;
 
             if (userStats is null)
@@ -305,7 +297,7 @@ namespace DietAssistant.Business
                 user.Goal.WeeklyGoal);
 
             var updatedUser = await _userRepository.UpdateDateOfBirthAsync(user, request.DateOfBirth, calories);
-            return Result.Create(userStats.ToResponse());
+            return Result.Create(updatedUser.UserStats.ToResponse());
         }
 
         private static Double ConvertWeight(Double weight, WeightUnit unit)
