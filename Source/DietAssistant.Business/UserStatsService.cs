@@ -21,17 +21,20 @@ namespace DietAssistant.Business
         private const Double DefaultFatPercent = 20;
 
         private readonly IUserResolverService _userResolverService;
+        private readonly IUserRepository _userRepository;
         private readonly IUserStatsRepository _userStatsRepository;
         private readonly IGoalRespository _goalRespository;
         private readonly IProgressLogRepository _progressLogRepository;
 
         public UserStatsService(
             IUserResolverService userResolverService,
+            IUserRepository userRepository,
             IUserStatsRepository userStatsRepository,
             IGoalRespository goalRespository,
             IProgressLogRepository progressLogRepository)
         {
             _userResolverService = userResolverService;
+            _userRepository = userRepository;
             _userStatsRepository = userStatsRepository;
             _goalRespository = goalRespository;
             _progressLogRepository = progressLogRepository;
@@ -62,9 +65,9 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
 
-            if (userStats is not null)
+            if (user.UserStats is not null)
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are already set.");
 
@@ -115,9 +118,10 @@ namespace DietAssistant.Business
                 UserId = currentUserId.Value
             };
 
-            var result = await _userStatsRepository.AddWithGoalAndProgressLogAsync(newUserStats, goal, progressLog);
+            var updatedUser = await _userRepository.SetStatsAsync(user, newUserStats, goal, progressLog);
+            var userStats = updatedUser.UserStats;
 
-            return Result.Create(result.ToResponse());
+            return Result.Create(userStats.ToResponse());
         }
 
         public async Task<Result<UserStatsResponse>> ChangeHeightUnitAsync(ChangeHeightUnitRequest request)
@@ -128,7 +132,8 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+            var userStats = user.UserStats;
 
             if (userStats is null)
                 return Result
@@ -137,15 +142,9 @@ namespace DietAssistant.Business
             if (request.HeightUnit == userStats.HeightUnit)
                 return Result.Create(userStats.ToResponse());
 
-            userStats.HeightUnit = request.HeightUnit;
+            var updatedUserStats = (await _userRepository.UpdateHeightUnitAsync(user, request.HeightUnit)).UserStats;
 
-            userStats.Height = userStats.HeightUnit == HeightUnit.Centimeters
-                ? userStats.GetHeightInCentimeters()
-                : userStats.GetHeightInInches();
-
-            await _userStatsRepository.SaveEntityAsync(userStats);
-
-            return Result.Create(userStats.ToResponse());
+            return Result.Create(updatedUserStats.ToResponse());
         }
 
         public async Task<Result<UserStatsResponse>> ChangeWeightUnitAsync(ChangeWeightUnitRequest request)
@@ -156,7 +155,8 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+            var userStats = user.UserStats;
 
             if (userStats is null)
                 return Result
@@ -167,27 +167,9 @@ namespace DietAssistant.Business
             if (weightUnit == userStats.WeightUnit)
                 return Result.Create(userStats.ToResponse());
 
-            var userId = userStats.UserId;
-
-            userStats.Weight = ConvertWeight(userStats.Weight, weightUnit);
-            await _userStatsRepository.SaveEntityAsync(userStats);
-
-            var goal = await _goalRespository.GetGoalByUserIdAsync(userId);
-
-            goal.StartWeight = ConvertWeight(goal.StartWeight, weightUnit);
-            goal.CurrentWeight = ConvertWeight(goal.CurrentWeight, weightUnit);
-            goal.GoalWeight = ConvertWeight(goal.GoalWeight, weightUnit);
-
-            await _goalRespository.SaveEntityAsync(goal);
-
-            var logs = await _progressLogRepository.GetProgressLogsAsync(userId, MeasurementType.Weight);
-
-            foreach (var log in logs)
-                log.Measurement = ConvertWeight(log.Measurement, weightUnit);
-
-            await _progressLogRepository.UpdateRangeAsync(logs);
-
-            return Result.Create(userStats.ToResponse());
+            var updatedUser = await _userRepository.UpdateWeightUnitAsync(user, request.WeightUnit, ConvertWeight);
+            
+            return Result.Create(updatedUser.UserStats.ToResponse());
         }
 
         public async Task<Result<UserStatsResponse>> ChangeWeightAsync(ChangeWeightRequest request)
@@ -198,50 +180,41 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+
+            var userStats = user.UserStats;
 
             if (userStats is null)
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
-            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+            var weeklyGoal = ChangeWeeklyGoal(
+                request.Weight,
+                user.Goal.GoalWeight,
+                user.Goal.WeeklyGoal,
+                user.UserStats.WeightUnit);
 
-            if (goal is null)
-                return Result
-                    .CreateWithError<UserStatsResponse>(EvaluationTypes.NotFound, "Goal of user was not found.");
-
+            var height = user.UserStats.Height;
             var weight = request.Weight;
+            var heightUnit = user.UserStats.HeightUnit;
+            var weightUnit = user.UserStats.WeightUnit;
+            var age = user.UserStats.DateOfBirth.ToAge(DateTime.Now.Date);
 
-            userStats.Weight = weight;
+            var calories = CalculateDailyCalories(
+                heightUnit == HeightUnit.FeetInches ? ToCentimeters(height) : height,
+                weightUnit == WeightUnit.Pounds ? ToKgs(weight) : weight,
+                age,
+                user.UserStats.Gender,
+                user.Goal.ActivityLevel,
+                weeklyGoal);
 
-            await _userStatsRepository.SaveEntityAsync(userStats);
+            var updatedUser = await _userRepository.UpdateCurrentWeightAsync(
+                user,
+                request.Weight,
+                weeklyGoal,
+                calories);
 
-            goal.CurrentWeight = weight;
-
-            var newNutritionGoal = new NutritionGoal
-            {
-                Calories = CalculateDailyCalories(userStats, goal),
-                PercentProtein = goal.NutritionGoal.PercentProtein,
-                PercentCarbs = goal.NutritionGoal.PercentCarbs,
-                PercentFat = goal.NutritionGoal.PercentFat,
-                UserId = currentUserId.Value
-            };
-
-            goal.NutritionGoal = newNutritionGoal;
-
-            await _goalRespository.SaveEntityAsync(goal);
-
-            var newProgressLog = new ProgressLog
-            {
-                MeasurementType = MeasurementType.Weight,
-                Measurement = userStats.Weight,
-                LoggedOn = DateTime.Now,
-                UserId = userStats.UserId
-            };
-
-            await _progressLogRepository.SaveEntityAsync(newProgressLog);
-
-            return Result.Create(userStats.ToResponse());
+            return Result.Create(updatedUser.UserStats.ToResponse());
         }
 
         public async Task<Result<UserStatsResponse>> ChangeHeightAsync(ChangeHeightRequest request)
@@ -252,49 +225,28 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+            var user = await _userRepository.GetByIdAsync(currentUserId.Value);
+            var userStats = user.UserStats;
 
             if (userStats is null)
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
-            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
-
-            if (goal is null)
-                return Result
-                    .CreateWithError<UserStatsResponse>(EvaluationTypes.NotFound, "Goal of user was not found.");
-
             var height = request.Height;
+            var heightUnit = user.UserStats.HeightUnit;
+            var age = user.UserStats.DateOfBirth.ToAge(DateTime.Now.Date);
 
-            userStats.Height = height;
+            var calories = CalculateDailyCalories(
+                heightUnit == HeightUnit.FeetInches ? ToCentimeters(height) : height,
+                user.UserStats.GetWeightInKg(),
+                age,
+                user.UserStats.Gender,
+                user.Goal.ActivityLevel,
+                user.Goal.WeeklyGoal);
 
-            await _userStatsRepository.SaveEntityAsync(userStats);
+            var updatedUser = await _userRepository.UpdateHeightAsync(user, height, calories);
 
-            var heightCm = userStats.GetHeightInCentimeters();
-            var weightKg = userStats.GetWeightInKg();
-
-            var dailyCalories = CalculateDailyCalories(
-                heightCm,
-                weightKg,
-                userStats.DateOfBirth.ToAge(DateTime.Today),
-                userStats.Gender,
-                goal.ActivityLevel,
-                goal.WeeklyGoal);
-
-            var newNutritionGoal = new NutritionGoal
-            {
-                Calories = dailyCalories,
-                PercentProtein = goal.NutritionGoal.PercentProtein,
-                PercentCarbs = goal.NutritionGoal.PercentCarbs,
-                PercentFat = goal.NutritionGoal.PercentFat,
-                UserId = currentUserId.Value
-            };
-
-            goal.NutritionGoal = newNutritionGoal;
-
-            await _goalRespository.SaveEntityAsync(goal);
-
-            return Result.Create(userStats.ToResponse());
+            return Result.Create(updatedUser.UserStats.ToResponse());
         }
 
         public async Task<Result<UserStatsResponse>> ChangeGenderAsync(ChangeGenderRequest request)
@@ -305,49 +257,26 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+            var user = await _userRepository.GetByIdAsync(currentUserId.Value);
+            var userStats = user.UserStats;
 
             if (userStats is null)
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
-            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+            var age = user.UserStats.DateOfBirth.ToAge(DateTime.Now.Date);
 
-            if (goal is null)
-                return Result
-                    .CreateWithError<UserStatsResponse>(EvaluationTypes.NotFound, "Goal of user was not found.");
+            var calories = CalculateDailyCalories(
+                user.UserStats.GetHeightInCentimeters(),
+                user.UserStats.GetWeightInKg(),
+                age,
+                request.Gender,
+                user.Goal.ActivityLevel,
+                user.Goal.WeeklyGoal);
 
-            var gender = request.Gender;
+            var updatedUser = await _userRepository.UpdateGenderAsync(user, request.Gender, calories);
 
-            userStats.Gender = gender;
-
-            await _userStatsRepository.SaveEntityAsync(userStats);
-
-            var heightCm = userStats.GetHeightInCentimeters();
-            var weightKg = userStats.GetWeightInKg();
-
-            var dailyCalories = CalculateDailyCalories(
-                heightCm,
-                weightKg,
-                userStats.DateOfBirth.ToAge(DateTime.Today),
-                userStats.Gender,
-                goal.ActivityLevel,
-                goal.WeeklyGoal);
-
-            var newNutritionGoal = new NutritionGoal
-            {
-                Calories = dailyCalories,
-                PercentProtein = goal.NutritionGoal.PercentProtein,
-                PercentCarbs = goal.NutritionGoal.PercentCarbs,
-                PercentFat = goal.NutritionGoal.PercentFat,
-                UserId = currentUserId.Value
-            };
-
-            goal.NutritionGoal = newNutritionGoal;
-
-            await _goalRespository.SaveEntityAsync(goal);
-
-            return Result.Create(userStats.ToResponse());
+            return Result.Create(updatedUser.UserStats.ToResponse());
         }
 
         public async Task<Result<UserStatsResponse>> ChangeDateOfBirthAsync(ChangeDateOfBirthRequest request)
@@ -358,48 +287,24 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var userStats = await _userStatsRepository.GetUserStatsAsync(currentUserId.Value);
+            var user = await _userRepository.GetByIdAsync(currentUserId.Value);
+            var userStats = user.UserStats;
 
             if (userStats is null)
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
-            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+            var age = request.DateOfBirth.ToAge(DateTime.Now.Date);
 
-            if (goal is null)
-                return Result
-                    .CreateWithError<UserStatsResponse>(EvaluationTypes.NotFound, "Goal of user was not found.");
+            var calories = CalculateDailyCalories(
+                user.UserStats.GetHeightInCentimeters(),
+                user.UserStats.GetWeightInKg(),
+                age,
+                user.UserStats.Gender,
+                user.Goal.ActivityLevel,
+                user.Goal.WeeklyGoal);
 
-            var dateOfBirth = request.DateOfBirth;
-
-            userStats.DateOfBirth = dateOfBirth;
-
-            await _userStatsRepository.SaveEntityAsync(userStats);
-
-            var heightCm = userStats.GetHeightInCentimeters();
-            var weightKg = userStats.GetWeightInKg();
-
-            var dailyCalories = CalculateDailyCalories(
-                heightCm,
-                weightKg,
-                userStats.DateOfBirth.ToAge(DateTime.Today),
-                userStats.Gender,
-                goal.ActivityLevel,
-                goal.WeeklyGoal);
-
-            var newNutritionGoal = new NutritionGoal
-            {
-                Calories = dailyCalories,
-                PercentProtein = goal.NutritionGoal.PercentProtein,
-                PercentCarbs = goal.NutritionGoal.PercentCarbs,
-                PercentFat = goal.NutritionGoal.PercentFat,
-                UserId = currentUserId.Value
-            };
-
-            goal.NutritionGoal = newNutritionGoal;
-
-            await _goalRespository.SaveEntityAsync(goal);
-
+            var updatedUser = await _userRepository.UpdateDateOfBirthAsync(user, request.DateOfBirth, calories);
             return Result.Create(userStats.ToResponse());
         }
 

@@ -17,24 +17,6 @@ namespace DietAssistant.DataAccess.Repositories
            => _dbContext.UsersStats
                  .SingleOrDefaultAsync(x => x.UserId == userId);
 
-        public async Task<UserStats> AddWithGoalAndProgressLogAsync(
-            UserStats userStats,
-            Goal goal,
-            ProgressLog progressLog)
-        {
-            using var transaction = await _dbContext.Database.BeginTransactionAsync();
-
-            await _dbContext.UsersStats.AddAsync(userStats);
-            await _dbContext.Goals.AddAsync(goal);
-            await _dbContext.ProgressLogs.AddAsync(progressLog);
-
-            await _dbContext.SaveChangesAsync();
-
-            await transaction.CommitAsync();
-
-            return userStats;
-        }
-
         Task<UserStats> IRepository<UserStats>.GetByIdAsync(int id)
             => GetByIdAsync(id);
 
