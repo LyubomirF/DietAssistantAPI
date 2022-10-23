@@ -35,7 +35,7 @@ namespace DietAssistant.Domain
                 : Math.Round(Weight / 2.205, 2);
 
         public virtual Double GetHeightInInches()
-            => HeightUnit == HeightUnit.FeetInches
+            => HeightUnit == HeightUnit.Inches
                 ? Height
                 : Math.Round(Height / 2.54, 2);
 

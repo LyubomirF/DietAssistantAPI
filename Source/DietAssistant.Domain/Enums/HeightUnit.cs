@@ -3,6 +3,6 @@
     public enum HeightUnit
     {
         Centimeters = 1,
-        FeetInches = 2
+        Inches = 2
     }
 }

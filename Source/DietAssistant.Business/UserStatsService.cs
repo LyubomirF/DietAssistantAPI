@@ -193,7 +193,7 @@ namespace DietAssistant.Business
             var age = user.UserStats.DateOfBirth.ToAge(DateTime.Now.Date);
 
             var calories = CalculateDailyCalories(
-                heightUnit == HeightUnit.FeetInches ? ToCentimeters(height) : height,
+                heightUnit == HeightUnit.Inches ? ToCentimeters(height) : height,
                 weightUnit == WeightUnit.Pounds ? ToKgs(weight) : weight,
                 age,
                 user.UserStats.Gender,
@@ -229,7 +229,7 @@ namespace DietAssistant.Business
             var age = user.UserStats.DateOfBirth.ToAge(DateTime.Now.Date);
 
             var calories = CalculateDailyCalories(
-                heightUnit == HeightUnit.FeetInches ? ToCentimeters(height) : height,
+                heightUnit == HeightUnit.Inches ? ToCentimeters(height) : height,
                 user.UserStats.GetWeightInKg(),
                 age,
                 user.UserStats.Gender,
