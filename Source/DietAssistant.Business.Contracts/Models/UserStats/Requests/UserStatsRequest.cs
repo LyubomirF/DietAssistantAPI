@@ -8,11 +8,11 @@ namespace DietAssistant.Business.Contracts.Models.UserStats.Requests
 
         public Double Weight { get; set; }
 
-        public HeightUnit HeightUnit { get; set; }
+        public String HeightUnit { get; set; }
 
-        public WeightUnit WeightUnit { get; set; }
+        public String WeightUnit { get; set; }
 
-        public Gender Gender { get; set; }
+        public String Gender { get; set; }
 
         public DateTime DateOfBirth { get; set; }
     }

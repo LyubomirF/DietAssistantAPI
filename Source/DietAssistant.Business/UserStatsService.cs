@@ -51,6 +51,18 @@ namespace DietAssistant.Business
 
         public async Task<Result<UserStatsResponse>> SetUserStatsAsync(UserStatsRequest request)
         {
+            if (!Enum.TryParse(request.HeightUnit, out HeightUnit heightUnit))
+                return Result
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "Invalid height unit type.");
+
+            if (!Enum.TryParse(request.WeightUnit, out WeightUnit weightUnit))
+                return Result
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "Invalid weight unit type.");
+
+            if (!Enum.TryParse(request.Gender, out Gender gender))
+                return Result
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "Invalid gender type.");
+
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
@@ -67,20 +79,20 @@ namespace DietAssistant.Business
             {
                 Height = request.Height,
                 Weight = request.Weight,
-                WeightUnit = request.WeightUnit,
-                HeightUnit = request.HeightUnit,
+                WeightUnit = weightUnit,
+                HeightUnit = heightUnit,
                 DateOfBirth = request.DateOfBirth,
-                Gender = request.Gender,
+                Gender = gender,
                 UserId = currentUserId.Value,
             };
 
             var nutritionGoal = new NutritionGoal
             {
                 Calories = CalculateDailyCalories(
-                    request.HeightUnit == HeightUnit.Centimeters ? request.Height : ToCentimeters(request.Height),
-                    request.WeightUnit == WeightUnit.Kilograms ? request.Weight : ToKgs(request.Weight),
+                    heightUnit == HeightUnit.Centimeters ? request.Height : ToCentimeters(request.Height),
+                    weightUnit == WeightUnit.Kilograms ? request.Weight : ToKgs(request.Weight),
                     request.DateOfBirth.ToAge(DateTime.Today),
-                    request.Gender,
+                    gender,
                     ActivityLevel.Sedentary,
                     WeeklyGoal.MaintainWeight),
                 PercentCarbs = DefaultCarbsPercent,
@@ -118,6 +130,10 @@ namespace DietAssistant.Business
 
         public async Task<Result<UserStatsResponse>> ChangeHeightUnitAsync(ChangeHeightUnitRequest request)
         {
+            if (!Enum.TryParse(request.HeightUnit, out HeightUnit heightUnit))
+                return Result
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "Invalid height unit type.");
+
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
@@ -131,16 +147,20 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
-            if (request.HeightUnit == userStats.HeightUnit)
+            if (heightUnit == userStats.HeightUnit)
                 return Result.Create(userStats.ToResponse());
 
-            var updatedUserStats = (await _userRepository.UpdateHeightUnitAsync(user, request.HeightUnit)).UserStats;
+            var updatedUserStats = (await _userRepository.UpdateHeightUnitAsync(user, heightUnit)).UserStats;
 
             return Result.Create(updatedUserStats.ToResponse());
         }
 
         public async Task<Result<UserStatsResponse>> ChangeWeightUnitAsync(ChangeWeightUnitRequest request)
         {
+            if (!Enum.TryParse(request.WeightUnit, out WeightUnit weightUnit))
+                return Result
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "Invalid weight unit type.");
+
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
@@ -154,12 +174,10 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
 
-            var weightUnit = request.WeightUnit;
-
             if (weightUnit == userStats.WeightUnit)
                 return Result.Create(userStats.ToResponse());
 
-            var updatedUser = await _userRepository.UpdateWeightUnitAsync(user, request.WeightUnit, ConvertWeight);
+            var updatedUser = await _userRepository.UpdateWeightUnitAsync(user, weightUnit, ConvertWeight);
             
             return Result.Create(updatedUser.UserStats.ToResponse());
         }
@@ -243,6 +261,10 @@ namespace DietAssistant.Business
 
         public async Task<Result<UserStatsResponse>> ChangeGenderAsync(ChangeGenderRequest request)
         {
+            if (!Enum.TryParse(request.Gender, out Gender gender))
+                return Result
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "Invalid gender type.");
+
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
@@ -262,11 +284,11 @@ namespace DietAssistant.Business
                 user.UserStats.GetHeightInCentimeters(),
                 user.UserStats.GetWeightInKg(),
                 age,
-                request.Gender,
+                gender,
                 user.Goal.ActivityLevel,
                 user.Goal.WeeklyGoal);
 
-            var updatedUser = await _userRepository.UpdateGenderAsync(user, request.Gender, calories);
+            var updatedUser = await _userRepository.UpdateGenderAsync(user, gender, calories);
 
             return Result.Create(updatedUser.UserStats.ToResponse());
         }
