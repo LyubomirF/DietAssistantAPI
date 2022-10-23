@@ -40,7 +40,6 @@ namespace DietAssistant.WebAPI.Extentions
             services.AddTransient<IMealRepository, MealRepository>();
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IDietPlanRepository, DietPlanRepository>();
-            services.AddTransient<IGoalRespository, GoalRepository>();
             services.AddTransient<IProgressLogRepository, ProgressLogRepository>();
         }
 

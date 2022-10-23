@@ -3,7 +3,6 @@ using DietAssistant.Domain;
 using DietAssistant.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
-#pragma warning disable CS8619
 #pragma warning disable CS8603
 
 namespace DietAssistant.DataAccess.Repositories
@@ -33,6 +32,7 @@ namespace DietAssistant.DataAccess.Repositories
                     .ThenByDescending(x => x.LoggedOn.Millisecond))
                 .Include(x => x.DietPlans)
                 .Include(x => x.Meals)
+                    .ThenInclude(x =>x.FoodServings)
                 .Include(x => x.UserStats)
                 .SingleOrDefaultAsync(x => x.UserId == userId);
         }

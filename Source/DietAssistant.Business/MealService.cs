@@ -15,20 +15,20 @@ namespace DietAssistant.Business
     public class MealService : IMealService
     {
         private readonly IUserResolverService _userResolverService;
+        private readonly IUserRepository _userRepository;
         private readonly IFoodCatalogService _foodCatalogService;
         private readonly IMealRepository _mealRepository;
-        private readonly IGoalRespository _goalRepository;
 
         public MealService(
             IUserResolverService userResolverService,
+            IUserRepository userRepository,
             IFoodCatalogService foodCatalogService,
-            IMealRepository mealRepository,
-            IGoalRespository goalRespository)
+            IMealRepository mealRepository)
         {
             _userResolverService = userResolverService;
             _foodCatalogService = foodCatalogService;
             _mealRepository = mealRepository;
-            _goalRepository = goalRespository;
+            _userRepository = userRepository;
         }
 
         public async Task<Result<IEnumerable<MealLogResponse>>> GetMealsOnDateAsync(DateTime? dateRequest)
@@ -62,13 +62,13 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<DayCaloriesProgress>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+
             var meals = await _mealRepository.GetMealsForDayAsync(date.Value, currentUserId.Value);
 
             var mealsBreakdown = await GetMealLogResponses(meals);
 
-            var goal = await _goalRepository.GetGoalByUserIdAsync(currentUserId.Value);
-
-            return Result.Create(GetCaloriesBreakdown(mealsBreakdown, goal));
+            return Result.Create(GetCaloriesBreakdown(mealsBreakdown, user.Goal));
         }
 
         public async Task<Result<DayMacrosProgress>> GetMacrosBreakdownAsync(DateTime? date)
@@ -84,11 +84,12 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<DayMacrosProgress>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+
             var meals = await _mealRepository.GetMealsForDayAsync(date.Value, currentUserId.Value);
             var mealsBreakdown = await GetMealLogResponses(meals);
-            var goal = await _goalRepository.GetGoalByUserIdAsync(currentUserId.Value);
 
-            return Result.Create(GetMacrosBreakdown(mealsBreakdown, goal));
+            return Result.Create(GetMacrosBreakdown(mealsBreakdown, user.Goal));
         }
 
         public async Task<Result<MealLogResponse>> GetMealById(Int32 id)

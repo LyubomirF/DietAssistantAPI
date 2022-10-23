@@ -17,19 +17,13 @@ namespace DietAssistant.Business
     {
         private readonly IUserResolverService _userResolverService;
         private readonly IUserRepository _userRepository;
-        private readonly IGoalRespository _goalRespository;
-        private readonly IUserStatsRepository _userStatsRepository;
 
         public GoalService(
             IUserResolverService userResolverService,
-            IUserRepository userRepository,
-            IGoalRespository goalRespository,
-            IUserStatsRepository userStatsRepository)
+            IUserRepository userRepository)
         {
             _userResolverService = userResolverService;
             _userRepository = userRepository;
-            _goalRespository = goalRespository;
-            _userStatsRepository = userStatsRepository;
         }
 
         public async Task<Result<GoalResponse>> GetGoalAsync()
@@ -40,7 +34,9 @@ namespace DietAssistant.Business
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var goal = await _goalRespository.GetGoalByUserIdAsync(currentUserId.Value);
+            var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+
+            var goal = user.Goal;
 
             if (goal is null)
                 return Result
