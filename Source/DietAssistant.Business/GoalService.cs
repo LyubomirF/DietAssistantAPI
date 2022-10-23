@@ -194,11 +194,17 @@ namespace DietAssistant.Business
 
         public async Task<Result<GoalResponse>> ChangeNutritionGoalAsync(NutritionGoalRequest request)
         {
+
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
+
+            var (isValid, errors) = Validate(request);
+
+            if (!isValid)
+                return Result.CreateWithErrors<GoalResponse>(EvaluationTypes.InvalidParameters, errors);
 
             var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
 
@@ -220,6 +226,27 @@ namespace DietAssistant.Business
             var goal = updatedUser.Goal;
 
             return Result.Create(goal.ToResponse());
+        }
+
+        private (bool, IEnumerable<String>) Validate(NutritionGoalRequest request)
+        {
+            var errors = new List<String>();
+
+            if (request.Calories < 100)
+            {
+                errors.Add("Calories are too low.");
+            }
+
+            var percentageGoal = 100.0;
+
+            var percentageResult = request.PercentProtein + request.PercentCarbs + request.PercentFat;
+
+            if (percentageResult != percentageResult)
+            {
+                errors.Add("Macros percentages must add up to 100%.");
+            }
+
+            return (errors.Count == 0, errors);
         }
     }
 }
