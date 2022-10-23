@@ -6,7 +6,7 @@ namespace DietAssistant.Business.Contracts
 {
     public interface IUserStatsService
     {
-        Task<Result<UserStatsResponse>> GetUserStats();
+        Task<Result<UserStatsResponse>> GetUserStatsAsync();
 
         Task<Result<UserStatsResponse>> SetUserStatsAsync(UserStatsRequest request);
 

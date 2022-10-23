@@ -19,7 +19,7 @@ namespace DietAssistant.WebAPI.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetUserStats()
-            => await _userStatsService.GetUserStats().ToActionResultAsync(this);
+            => await _userStatsService.GetUserStatsAsync().ToActionResultAsync(this);
 
         [HttpPost]
         public async Task<IActionResult> SetStatsAsync([FromBody] UserStatsRequest request)

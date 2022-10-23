@@ -31,7 +31,7 @@ namespace DietAssistant.Business
             _userRepository = userRepository;
         }
 
-        public async Task<Result<UserStatsResponse>> GetUserStats()
+        public async Task<Result<UserStatsResponse>> GetUserStatsAsync()
         {
             var currentUserId = _userResolverService.GetCurrentUserId();
 
