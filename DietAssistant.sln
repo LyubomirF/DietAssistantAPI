@@ -17,7 +17,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DietAssistant.Domain", "Sou
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DietAssistant.WebAPI", "Source\DietAssistant.WebAPI\DietAssistant.WebAPI.csproj", "{3E0F54E8-58BD-47E6-BCF8-CB4EE4AA0729}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DietAssistant.Common", "Source\DietAssistant.Common\DietAssistant.Common.csproj", "{875482F0-C378-4B42-9988-82CDFCFFBCFF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DietAssistant.Common", "Source\DietAssistant.Common\DietAssistant.Common.csproj", "{875482F0-C378-4B42-9988-82CDFCFFBCFF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D3E5015D-282B-46F0-8872-E54694644E2B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DietAssistant.UnitTests", "Tests\DietAssistant.UnitTests\DietAssistant.UnitTests.csproj", "{453427A8-C3F4-47A7-9C05-B32EE1B1E18B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +57,10 @@ Global
 		{875482F0-C378-4B42-9988-82CDFCFFBCFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{875482F0-C378-4B42-9988-82CDFCFFBCFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{875482F0-C378-4B42-9988-82CDFCFFBCFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{453427A8-C3F4-47A7-9C05-B32EE1B1E18B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{453427A8-C3F4-47A7-9C05-B32EE1B1E18B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{453427A8-C3F4-47A7-9C05-B32EE1B1E18B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{453427A8-C3F4-47A7-9C05-B32EE1B1E18B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -65,6 +73,7 @@ Global
 		{E9617744-8602-415D-B30E-B6E885298423} = {A934F4BB-2643-4B2A-8512-7454B0743C61}
 		{3E0F54E8-58BD-47E6-BCF8-CB4EE4AA0729} = {A934F4BB-2643-4B2A-8512-7454B0743C61}
 		{875482F0-C378-4B42-9988-82CDFCFFBCFF} = {A934F4BB-2643-4B2A-8512-7454B0743C61}
+		{453427A8-C3F4-47A7-9C05-B32EE1B1E18B} = {D3E5015D-282B-46F0-8872-E54694644E2B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5F74A085-CB68-4429-A1DD-43C19390818A}
