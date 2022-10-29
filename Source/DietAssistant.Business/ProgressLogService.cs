@@ -72,7 +72,7 @@ namespace DietAssistant.Business
 
             if (userStats is null)
                 return Result
-                    .CreateWithError<ProgressLogResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+                    .CreateWithError<ProgressLogResponse>(EvaluationTypes.Failed, "User stats are not set.");
 
             if (measurementType == MeasurementType.Weight)
             {
@@ -97,7 +97,10 @@ namespace DietAssistant.Business
                     weeklyGoal);
 
                 var updatedUser = await _userRepository.UpdateCurrentWeightAsync(user, request.Measurement, weeklyGoal, calories);
-                var lastLog = updatedUser.ProgressLogs.LastOrDefault();
+                var lastLog = updatedUser.ProgressLogs
+                    .Where(x => x.MeasurementType == MeasurementType.Weight)
+                    .OrderBy(x => x.LoggedOn)
+                    .LastOrDefault();
 
                 return lastLog is null
                     ? Result.CreateWithError<ProgressLogResponse>(EvaluationTypes.Failed, "Error occured.")
