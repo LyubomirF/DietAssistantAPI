@@ -194,7 +194,6 @@ namespace DietAssistant.Business
 
         public async Task<Result<GoalResponse>> ChangeNutritionGoalAsync(NutritionGoalRequest request)
         {
-
             var currentUserId = _userResolverService.GetCurrentUserId();
 
             if (!currentUserId.HasValue)
@@ -241,7 +240,7 @@ namespace DietAssistant.Business
 
             var percentageResult = request.PercentProtein + request.PercentCarbs + request.PercentFat;
 
-            if (percentageResult != percentageResult)
+            if (percentageResult != percentageGoal)
             {
                 errors.Add("Macros percentages must add up to 100%.");
             }
