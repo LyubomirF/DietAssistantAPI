@@ -175,7 +175,8 @@ namespace DietAssistant.UnitTests.Database
                                 ProgressLogId = pl.ProgressLogId,
                                 MeasurementType = pl.MeasurementType,
                                 Measurement = pl.Measurement,
-                                LoggedOn = pl.LoggedOn
+                                LoggedOn = pl.LoggedOn,
+                                UserId = pl.UserId
                             })
                             .ToList(),
                     Goal = x.Goal == null

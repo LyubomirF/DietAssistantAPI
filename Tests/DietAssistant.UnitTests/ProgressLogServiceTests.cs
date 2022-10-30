@@ -457,5 +457,56 @@ namespace DietAssistant.UnitTests
             Assert.IsTrue(result.IsFailure());
             Assert.IsTrue(result.EvaluationResult == EvaluationTypes.Unauthorized);
         }
+
+        [Test]
+        public async Task DeleteProgressLogAsync_ReturnsSuccess()
+        {
+            //Arrange 
+            var userId = 1;
+            var request = 1;
+
+            _userResolverServiceMock.Setup(x => x.GetCurrentUserId())
+                .Returns(userId);
+
+            var progressLogService = new ProgressLogService(
+                _userResolverServiceMock.Object,
+                _userRepository,
+                _progressLogRepository);
+
+            //Act
+            var result = await progressLogService.DeleteProgressLogAsync(request);
+
+            //Arrange
+            var exists = Users
+                .SingleOrDefault(x => x.UserId == userId)
+                .ProgressLogs
+                .Any(x => x.ProgressLogId == request);
+
+            Assert.IsTrue(result.IsSuccessful());
+            Assert.IsFalse(exists);
+        }
+
+        [Test]
+        public async Task DeleteProgressLogAsync_ReturnsUnauthorized()
+        {
+            //Arrange 
+            var userId = 1;
+            var request = 1;
+
+            _userResolverServiceMock.Setup(x => x.GetCurrentUserId())
+                .Returns(() => null);
+
+            var progressLogService = new ProgressLogService(
+                _userResolverServiceMock.Object,
+                _userRepository,
+                _progressLogRepository);
+
+            //Act
+            var result = await progressLogService.DeleteProgressLogAsync(request);
+
+            //Arrange
+            Assert.IsTrue(result.IsFailure());
+            Assert.IsTrue(result.EvaluationResult == EvaluationTypes.Unauthorized);
+        }
     }
 }
