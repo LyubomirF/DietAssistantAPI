@@ -44,7 +44,7 @@ namespace DietAssistant.Business
 
             if (userStats is null)
                 return Result
-                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.NotFound, "User stats are not set.");
 
             return Result.Create(userStats.ToResponse());
         }
@@ -73,7 +73,7 @@ namespace DietAssistant.Business
 
             if (user.UserStats is not null)
                 return Result
-                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are already set.");
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.Failed, "User stats are already set.");
 
             var newUserStats = new UserStats
             {
@@ -145,7 +145,7 @@ namespace DietAssistant.Business
 
             if (userStats is null)
                 return Result
-                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.NotFound, "User stats are not set.");
 
             if (heightUnit == userStats.HeightUnit)
                 return Result.Create(userStats.ToResponse());
@@ -172,7 +172,7 @@ namespace DietAssistant.Business
 
             if (userStats is null)
                 return Result
-                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.NotFound, "User stats are not set.");
 
             if (weightUnit == userStats.WeightUnit)
                 return Result.Create(userStats.ToResponse());
@@ -196,7 +196,7 @@ namespace DietAssistant.Business
 
             if (userStats is null)
                 return Result
-                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.NotFound, "User stats are not set.");
 
             var weeklyGoal = ChangeWeeklyGoal(
                 request.Weight,
@@ -240,7 +240,7 @@ namespace DietAssistant.Business
 
             if (userStats is null)
                 return Result
-                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.NotFound, "User stats are not set.");
 
             var height = request.Height;
             var heightUnit = user.UserStats.HeightUnit;
@@ -276,7 +276,10 @@ namespace DietAssistant.Business
 
             if (userStats is null)
                 return Result
-                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.NotFound, "User stats are not set.");
+
+            if (userStats.Gender == gender)
+                return Result.Create(userStats.ToResponse());
 
             var age = user.UserStats.DateOfBirth.ToAge(DateTime.Now.Date);
 
@@ -306,7 +309,7 @@ namespace DietAssistant.Business
 
             if (userStats is null)
                 return Result
-                    .CreateWithError<UserStatsResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+                    .CreateWithError<UserStatsResponse>(EvaluationTypes.NotFound, "User stats are not set.");
 
             var age = request.DateOfBirth.ToAge(DateTime.Now.Date);
 

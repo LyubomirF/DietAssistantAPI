@@ -3,6 +3,7 @@ using DietAssistant.Domain;
 using DietAssistant.Domain.Enums;
 using DietAssistant.UnitTests.Database;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -34,7 +35,13 @@ namespace DietAssistant.UnitTests.Repositories
 
         public Task<User> SetStatsAsync(User user, UserStats userStats, Goal goal, ProgressLog progressLog)
         {
-            throw new NotImplementedException();
+            user.UserStats = userStats;
+            user.Goal = goal;
+
+            user.ProgressLogs = new List<ProgressLog>();
+            user.ProgressLogs.Add(progressLog);
+
+            return Task.FromResult(user);
         }
 
         public Task<User> UpdateActivityLevelAsync(User user, ActivityLevel activityLevel, double calories)
@@ -77,12 +84,44 @@ namespace DietAssistant.UnitTests.Repositories
 
         public Task<User> UpdateDateOfBirthAsync(User user, DateTime dateOfBirth, double calories)
         {
-            throw new NotImplementedException();
+            var userStats = user.UserStats;
+            var goal = user.Goal;
+
+            userStats.DateOfBirth = dateOfBirth;
+
+            var newNutritionGoal = new NutritionGoal
+            {
+                Calories = calories,
+                PercentProtein = goal.NutritionGoal.PercentProtein,
+                PercentCarbs = goal.NutritionGoal.PercentCarbs,
+                PercentFat = goal.NutritionGoal.PercentFat,
+                UserId = user.UserId
+            };
+
+            goal.NutritionGoal = newNutritionGoal;
+
+            return Task.FromResult(user);
         }
 
         public Task<User> UpdateGenderAsync(User user, Gender gender, double calories)
         {
-            throw new NotImplementedException();
+            var userStats = user.UserStats;
+            var goal = user.Goal;
+
+            userStats.Gender = gender;
+
+            var newNutritionGoal = new NutritionGoal
+            {
+                Calories = calories,
+                PercentProtein = goal.NutritionGoal.PercentProtein,
+                PercentCarbs = goal.NutritionGoal.PercentCarbs,
+                PercentFat = goal.NutritionGoal.PercentFat,
+                UserId = user.UserId
+            };
+
+            goal.NutritionGoal = newNutritionGoal;
+
+            return Task.FromResult(user);
         }
 
         public Task<User> UpdateGoalWeightAsync(User user, double goalWeight, WeeklyGoal weeklyGoal, double calories)
@@ -92,12 +131,36 @@ namespace DietAssistant.UnitTests.Repositories
 
         public Task<User> UpdateHeightAsync(User user, double height, double calories)
         {
-            throw new NotImplementedException();
+            var userStats = user.UserStats;
+            userStats.Height = height;
+
+            var goal = user.Goal;
+
+            var newNutritionGoal = new NutritionGoal
+            {
+                Calories = calories,
+                PercentProtein = goal.NutritionGoal.PercentProtein,
+                PercentCarbs = goal.NutritionGoal.PercentCarbs,
+                PercentFat = goal.NutritionGoal.PercentFat,
+                UserId = user.UserId
+            };
+
+            goal.NutritionGoal = newNutritionGoal;
+
+            return Task.FromResult(user);
         }
 
         public Task<User> UpdateHeightUnitAsync(User user, HeightUnit heightUnit)
         {
-            throw new NotImplementedException();
+            var userStats = user.UserStats;
+
+            userStats.Height = heightUnit == HeightUnit.Centimeters
+                ? userStats.GetHeightInCentimeters()
+                : userStats.GetHeightInInches();
+
+            userStats.HeightUnit = heightUnit;
+
+            return Task.FromResult(user);
         }
 
         public Task<User> UpdateNutritionGoalAsync(User user, NutritionGoal nutritionGoal)
@@ -112,7 +175,21 @@ namespace DietAssistant.UnitTests.Repositories
 
         public Task<User> UpdateWeightUnitAsync(User user, WeightUnit weightUnit, Func<double, WeightUnit, double> converter)
         {
-            throw new NotImplementedException();
+            var userStats = user.UserStats;
+            userStats.Weight = converter(userStats.Weight, weightUnit);
+            userStats.WeightUnit = weightUnit;
+
+            var goal = user.Goal;
+            goal.StartWeight = converter(goal.StartWeight, weightUnit);
+            goal.CurrentWeight = converter(goal.CurrentWeight, weightUnit);
+            goal.GoalWeight = converter(goal.GoalWeight, weightUnit);
+
+            var logs = user.ProgressLogs;
+
+            foreach (var log in logs)
+                log.Measurement = converter(log.Measurement, weightUnit);
+
+            return Task.FromResult(user);
         }
     }
 }

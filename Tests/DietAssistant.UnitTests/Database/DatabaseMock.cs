@@ -143,7 +143,44 @@ namespace DietAssistant.UnitTests.Database
                 UserId = 2,
                 Email = "example1@mail.com",
                 Name = "John Doe"
-            }
+            },
+            new User
+            {
+                UserId = 3,
+                Email = "example2@mail.com",
+                Name = "John Doe 1",
+                UserStats = new UserStats
+                {
+                    Gender = Gender.Male,
+                    Height = 70,
+                    Weight = 187,
+                    HeightUnit = HeightUnit.Inches,
+                    WeightUnit = WeightUnit.Pounds,
+                    DateOfBirth = new DateTime(1995, 1, 13)
+                },
+                Goal = new Goal
+                {
+                    GoalId = 1,
+                    StartDate = new DateTime(2021, 5, 1),
+                    StartWeight = 209,
+                    CurrentWeight = 187,
+                    GoalWeight = 176,
+                    WeeklyGoal = WeeklyGoal.SlowWeightLoss,
+                    ActivityLevel = ActivityLevel.Sedentary,
+                    UserId = 1,
+                    NutritionGoal = new NutritionGoal
+                    {
+                        NutritionGoalId = 1,
+                        Calories = 2100.0,
+                        PercentProtein = 35,
+                        PercentFat = 25,
+                        PercentCarbs = 40,
+                        ChangedOnUTC = new DateTime()
+                    }
+                },
+                ProgressLogs = new List<ProgressLog>()
+            },
+
         };
 
         public static List<User> Users { get; private set; } 

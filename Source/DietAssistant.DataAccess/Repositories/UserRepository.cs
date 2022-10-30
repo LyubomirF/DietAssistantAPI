@@ -188,11 +188,11 @@ namespace DietAssistant.DataAccess.Repositories
         {
             var userStats = user.UserStats;
 
-            userStats.HeightUnit = heightUnit;
-
-            userStats.Height = userStats.HeightUnit == HeightUnit.Centimeters
+            userStats.Height = heightUnit == HeightUnit.Centimeters
                 ? userStats.GetHeightInCentimeters()
                 : userStats.GetHeightInInches();
+
+            userStats.HeightUnit = heightUnit;
 
             await SaveEntityAsync(user);
 
@@ -203,6 +203,7 @@ namespace DietAssistant.DataAccess.Repositories
         {
             var userStats = user.UserStats;
             userStats.Weight = converter(userStats.Weight, weightUnit);
+            userStats.WeightUnit = weightUnit;
 
             var goal = user.Goal;
             goal.StartWeight = converter(goal.StartWeight, weightUnit);
