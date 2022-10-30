@@ -2,6 +2,9 @@
 using DietAssistant.Domain.Enums;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+
+#pragma warning disable
 
 namespace DietAssistant.UnitTests.Database
 {
@@ -120,7 +123,7 @@ namespace DietAssistant.UnitTests.Database
                     StartDate = new DateTime(2021, 5, 1),
                     StartWeight = 95,
                     CurrentWeight = 85,
-                    GoalWeight = 80, 
+                    GoalWeight = 80,
                     WeeklyGoal = WeeklyGoal.SlowWeightLoss,
                     ActivityLevel = ActivityLevel.Sedentary,
                     UserId = 1,
@@ -143,6 +146,64 @@ namespace DietAssistant.UnitTests.Database
             }
         };
 
-        public static List<User> Users => _users;
+        public static List<User> Users { get; private set; } 
+
+        public static void Initialize()
+        {
+            var usersCopy = _users
+                .Select(x => new User
+                {
+                    UserId = x.UserId,
+                    Email = x.Email,
+                    Name = x.Name,
+                    UserStats = x.UserStats == null
+                        ? null
+                        : new UserStats
+                        {
+                            Gender = x.UserStats.Gender,
+                            Height = x.UserStats.Height,
+                            Weight = x.UserStats.Weight,
+                            HeightUnit = x.UserStats.HeightUnit,
+                            WeightUnit = x.UserStats.WeightUnit,
+                            DateOfBirth = x.UserStats.DateOfBirth
+                        },
+                    ProgressLogs = x.ProgressLogs == null
+                        ? null
+                        : x.ProgressLogs
+                            .Select(pl => new ProgressLog 
+                            {
+                                ProgressLogId = pl.ProgressLogId,
+                                MeasurementType = pl.MeasurementType,
+                                Measurement = pl.Measurement,
+                                LoggedOn = pl.LoggedOn
+                            })
+                            .ToList(),
+                    Goal = x.Goal == null
+                        ? null
+                        : new Goal
+                        {
+                            GoalId = x.Goal.GoalId,
+                            StartDate = x.Goal.StartDate,
+                            StartWeight = x.Goal.StartWeight,
+                            CurrentWeight = x.Goal.CurrentWeight,
+                            GoalWeight = x.Goal.GoalWeight,
+                            WeeklyGoal = x.Goal.WeeklyGoal,
+                            ActivityLevel = x.Goal.ActivityLevel,
+                            UserId = x.Goal.UserId,
+                            NutritionGoal = new NutritionGoal
+                            {
+                                NutritionGoalId = x.Goal.NutritionGoal.NutritionGoalId,
+                                Calories = x.Goal.NutritionGoal.Calories,
+                                PercentProtein = x.Goal.NutritionGoal.PercentProtein,
+                                PercentFat = x.Goal.NutritionGoal.PercentFat,
+                                PercentCarbs = x.Goal.NutritionGoal.PercentCarbs,
+                                ChangedOnUTC = x.Goal.NutritionGoal.ChangedOnUTC
+                            }
+                        }
+                })
+                .ToList();
+
+            Users = usersCopy;
+        }
     }
 }

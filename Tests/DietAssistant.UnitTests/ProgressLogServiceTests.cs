@@ -28,6 +28,8 @@ namespace DietAssistant.UnitTests
         [SetUp]
         public void Setup()
         {
+
+            DatabaseMock.Initialize();
             _progressLogRepository = new ProgressLogRepositoryMock();
             _userRepository = new UserRepositoryMock();
             _userResolverServiceMock = new Mock<IUserResolverService>();
@@ -201,7 +203,7 @@ namespace DietAssistant.UnitTests
             //Assert
             Assert.IsTrue(result.IsSuccessful());
             Assert.IsTrue(data.Results.TrueForAll(x => x.MeasurementType == "Weight"));
-            Assert.IsTrue(data.Results.TrueForAll(x => x.LoggedOn >= periodStart && x.LoggedOn <=periodEnd));
+            Assert.IsTrue(data.TotalCount == 5);
             Assert.IsTrue(data.Page == 1);
             Assert.IsTrue(data.PageSize == 20);
         }
@@ -236,7 +238,7 @@ namespace DietAssistant.UnitTests
             //Assert
             Assert.IsTrue(result.IsSuccessful());
             Assert.IsTrue(data.Results.TrueForAll(x => x.MeasurementType == "Weight"));
-            Assert.IsTrue(data.Results.TrueForAll( x => x.LoggedOn >= periodStart));
+            Assert.IsTrue(data.TotalCount == 6);
             Assert.IsTrue(data.Page == 1);
             Assert.IsTrue(data.PageSize == 20);
         }
