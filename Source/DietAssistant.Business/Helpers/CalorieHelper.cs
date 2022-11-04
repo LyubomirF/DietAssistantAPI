@@ -4,7 +4,7 @@ using DietAssistant.Domain.Enums;
 
 namespace DietAssistant.Business.Helpers
 {
-    internal class CalorieHelper
+    public class CalorieHelper
     {
         private const Double MaintainLimitInPounds = 1;
         private const Double MaintainLimitInKg = 0.5;
@@ -69,16 +69,21 @@ namespace DietAssistant.Business.Helpers
                 return WeeklyGoal.MaintainWeight;
             }
 
-            if (goalWeight > currentWeight
+            var sholdGainWeight = goalWeight > currentWeight
                 && previousGoal >= WeeklyGoal.MaintainWeight
-                && previousGoal <= WeeklyGoal.ExtremeWeightLoss)
+                && previousGoal <= WeeklyGoal.ExtremeWeightLoss;
+
+            var shouldLooseWeight = goalWeight < currentWeight
+                && ((previousGoal >= WeeklyGoal.SlowWeightGain
+                && previousGoal <= WeeklyGoal.ModerateWeightGain)
+                || previousGoal == WeeklyGoal.MaintainWeight);
+
+            if (sholdGainWeight)
             {
                 return WeeklyGoal.SlowWeightGain;
             }
 
-            if (goalWeight < currentWeight
-                && previousGoal >= WeeklyGoal.SlowWeightGain
-                && previousGoal <= WeeklyGoal.ModerateWeightGain)
+            if (shouldLooseWeight)
             {
                 return WeeklyGoal.ModerateWeightLoss;
             }
