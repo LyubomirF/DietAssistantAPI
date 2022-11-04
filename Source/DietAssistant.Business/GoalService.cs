@@ -55,6 +55,12 @@ namespace DietAssistant.Business
 
             var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
 
+            var userStats = user.UserStats;
+
+            if (userStats is null)
+                return Result
+                    .CreateWithError<GoalResponse>(EvaluationTypes.NotFound, "User stats are not set.");
+
             var weeklyGoal = ChangeWeeklyGoal(
                 request.CurrentWeight,
                 user.Goal.GoalWeight,
@@ -95,6 +101,13 @@ namespace DietAssistant.Business
                     .CreateWithError<GoalResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
             var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+
+            var userStats = user.UserStats;
+
+            if (userStats is null)
+                return Result
+                    .CreateWithError<GoalResponse>(EvaluationTypes.NotFound, "User stats are not set.");
+
             var weeklyGoal = ChangeWeeklyGoal(
                 user.UserStats.Weight,
                 request.GoalWeight,
@@ -123,7 +136,7 @@ namespace DietAssistant.Business
 
         public async Task<Result<GoalResponse>> ChangeWeeklyGoalAsync(ChangeWeeklyGoalRequest request)
         {
-            if (Enum.TryParse(request.WeeklyGoal, out WeeklyGoal weeklyGoal))
+            if (!Enum.TryParse(request.WeeklyGoal, out WeeklyGoal weeklyGoal))
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "Invalid weekly goal value.");
 
@@ -134,6 +147,11 @@ namespace DietAssistant.Business
                     .CreateWithError<GoalResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
             var user = await _userRepository.GetUserByIdAsync(currentUserId.Value);
+
+            if (user.UserStats is null)
+                return Result
+                    .CreateWithError<GoalResponse>(EvaluationTypes.NotFound, "User stats are not set.");
+
             var userGoal = user.Goal;
 
             if (userGoal.WeeklyGoal == weeklyGoal)
@@ -155,7 +173,7 @@ namespace DietAssistant.Business
 
         public async Task<Result<GoalResponse>> ChangeActivityLevelAsync(ChangeActivityLevelRequest request)
         {
-            if (Enum.TryParse(request.ActivityLevel, out ActivityLevel activityLevel))
+            if (!Enum.TryParse(request.ActivityLevel, out ActivityLevel activityLevel))
                 return Result
                     .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "Invalid activity level value.");
 
@@ -171,7 +189,7 @@ namespace DietAssistant.Business
 
             if (userStats is null)
                 return Result
-                    .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+                    .CreateWithError<GoalResponse>(EvaluationTypes.NotFound, "User stats are not set.");
 
             var userGoal = user.Goal;
 
@@ -209,7 +227,7 @@ namespace DietAssistant.Business
 
             if (user.UserStats is null)
                 return Result
-                    .CreateWithError<GoalResponse>(EvaluationTypes.InvalidParameters, "User stats are not set.");
+                    .CreateWithError<GoalResponse>(EvaluationTypes.NotFound, "User stats are not set.");
 
             var nutritionGoal = new Domain.NutritionGoal
             {

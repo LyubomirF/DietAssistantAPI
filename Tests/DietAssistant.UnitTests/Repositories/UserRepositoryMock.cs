@@ -25,7 +25,7 @@ namespace DietAssistant.UnitTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<User> GetUserByIdAsync(int userId) 
+        public Task<User> GetUserByIdAsync(int userId)
             => Task.FromResult(Users.SingleOrDefault(x => x.UserId == userId));
 
         public Task SaveEntityAsync(User entity)
@@ -46,7 +46,23 @@ namespace DietAssistant.UnitTests.Repositories
 
         public Task<User> UpdateActivityLevelAsync(User user, ActivityLevel activityLevel, double calories)
         {
-            throw new NotImplementedException();
+            var goal = user.Goal;
+
+            goal.ActivityLevel = activityLevel;
+
+            var nutritionGoal = new NutritionGoal
+            {
+                Calories = calories,
+                PercentCarbs = goal.NutritionGoal.PercentCarbs,
+                PercentProtein = goal.NutritionGoal.PercentProtein,
+                PercentFat = goal.NutritionGoal.PercentFat,
+                ChangedOnUTC = DateTime.UtcNow,
+                UserId = user.UserId
+            };
+
+            goal.NutritionGoal = nutritionGoal;
+
+            return Task.FromResult(user);
         }
 
         public Task<User> UpdateCurrentWeightAsync(User user, double weight, WeeklyGoal weeklyGoal, double updatedCalories)
@@ -126,7 +142,29 @@ namespace DietAssistant.UnitTests.Repositories
 
         public Task<User> UpdateGoalWeightAsync(User user, double goalWeight, WeeklyGoal weeklyGoal, double calories)
         {
-            throw new NotImplementedException();
+            var goal = user.Goal;
+
+            var previousGoal = goal.WeeklyGoal;
+
+            goal.GoalWeight = goalWeight;
+            goal.WeeklyGoal = weeklyGoal;
+
+            if (previousGoal != goal.WeeklyGoal)
+            {
+                var nutritionGoal = new NutritionGoal
+                {
+                    Calories = calories,
+                    PercentCarbs = goal.NutritionGoal.PercentCarbs,
+                    PercentProtein = goal.NutritionGoal.PercentProtein,
+                    PercentFat = goal.NutritionGoal.PercentFat,
+                    ChangedOnUTC = DateTime.UtcNow.Date,
+                    UserId = user.UserId
+                };
+
+                goal.NutritionGoal = nutritionGoal;
+            }
+
+            return Task.FromResult(user);
         }
 
         public Task<User> UpdateHeightAsync(User user, double height, double calories)
@@ -165,12 +203,30 @@ namespace DietAssistant.UnitTests.Repositories
 
         public Task<User> UpdateNutritionGoalAsync(User user, NutritionGoal nutritionGoal)
         {
-            throw new NotImplementedException();
+            user.Goal.NutritionGoal = nutritionGoal;
+
+            return Task.FromResult(user);
         }
 
         public Task<User> UpdateWeeklyGoalAsync(User user, WeeklyGoal weeklyGoal, double calories)
         {
-            throw new NotImplementedException();
+            var goal = user.Goal;
+
+            goal.WeeklyGoal = weeklyGoal;
+
+            var nutritionGoal = new NutritionGoal
+            {
+                Calories = calories,
+                PercentCarbs = goal.NutritionGoal.PercentCarbs,
+                PercentProtein = goal.NutritionGoal.PercentProtein,
+                PercentFat = goal.NutritionGoal.PercentFat,
+                ChangedOnUTC = DateTime.UtcNow,
+                UserId = user.UserId
+            };
+
+            goal.NutritionGoal = nutritionGoal;
+
+            return Task.FromResult(user);
         }
 
         public Task<User> UpdateWeightUnitAsync(User user, WeightUnit weightUnit, Func<double, WeightUnit, double> converter)
