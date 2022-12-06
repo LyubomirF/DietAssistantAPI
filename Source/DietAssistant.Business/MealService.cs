@@ -102,7 +102,7 @@ namespace DietAssistant.Business
             if (!currentUserId.HasValue)
                 return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
+            var meal = await _mealRepository.GetMealByIdWithFoodServingsAsync(id, currentUserId.Value);
 
             if (meal is null)
                 return Result
@@ -198,7 +198,7 @@ namespace DietAssistant.Business
             if (!currentUserId.HasValue)
                 return Result.CreateWithError<MealLogResponse>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
+            var meal = await _mealRepository.GetMealByIdWithFoodServingsAsync(id, currentUserId.Value);
 
             if (meal is null)
                 return Result
@@ -248,7 +248,7 @@ namespace DietAssistant.Business
             if (!currentUserId.HasValue)
                 return Result.CreateWithError<Int32>(EvaluationTypes.Unauthorized, ResponseMessages.Unauthorized);
 
-            var meal = await _mealRepository.GetMealByIdWithFoodServings(id, currentUserId.Value);
+            var meal = await _mealRepository.GetMealByIdWithFoodServingsAsync(id, currentUserId.Value);
 
             if (meal is null)
                 return Result.CreateWithError<Int32>(EvaluationTypes.NotFound, ResponseMessages.MealNotFound(id));

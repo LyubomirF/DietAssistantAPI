@@ -4,7 +4,7 @@ namespace DietAssistant.DataAccess.Contracts
 {
     public interface IMealRepository : IRepository<Meal>
     {
-        Task<Meal> GetMealByIdWithFoodServings(Int32 mealId, Int32 userId);
+        Task<Meal> GetMealByIdWithFoodServingsAsync(Int32 mealId, Int32 userId);
 
         Task<IEnumerable<Meal>> GetMealsForDayAsync(DateTime date, Int32 userId);
 

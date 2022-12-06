@@ -11,7 +11,7 @@ namespace DietAssistant.DataAccess.Repositories
         public MealRepository(DietAssistantDbContext dbContext)
             : base(dbContext) { }
 
-        public async Task<Meal> GetMealByIdWithFoodServings(int id, int userId)
+        public async Task<Meal> GetMealByIdWithFoodServingsAsync(int id, int userId)
             => await _dbContext.Meals
                 .Include(x => x.FoodServings)
                 .SingleOrDefaultAsync(x => x.MealId == id && x.UserId == userId);

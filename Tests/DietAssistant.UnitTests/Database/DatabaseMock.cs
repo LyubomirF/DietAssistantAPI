@@ -136,6 +136,103 @@ namespace DietAssistant.UnitTests.Database
                         PercentCarbs = 40,
                         ChangedOnUTC = new DateTime()
                     }
+                },
+                Meals = new List<Meal>()
+                {
+                    new Meal
+                    {
+                        MealId = 1,
+                        Order = 1,
+                        EatenOn = new DateTime(2021, 12, 1),
+                        UserId = 1,
+                        FoodServings = new List<FoodServing>()
+                        {
+                            new FoodServing
+                            {
+                                FoodServingId = 1,
+                                FoodId = "W1111", //Chicken
+                                MealId = 1,
+                                ServingUnit = "g",
+                                ServingSize = 120,
+                                NumberOfServings = 1,
+                            },
+                            new FoodServing
+                            {
+                                FoodServingId = 2,
+                                FoodId = "W4444", //Tomatoe
+                                MealId = 1,
+                                ServingUnit = "g",
+                                ServingSize = 200,
+                                NumberOfServings = 1,
+                            }
+                        }
+                    },
+                    new Meal
+                    {
+                        MealId = 2,
+                        Order = 2,
+                        EatenOn = new DateTime(2021, 12, 1),
+                        UserId = 1,
+                        FoodServings = new List<FoodServing>()
+                        {
+                            new FoodServing
+                            {
+                                FoodServingId = 3,
+                                FoodId = "W3333", //Banana
+                                MealId = 2,
+                                ServingUnit = "g",
+                                ServingSize = 75,
+                                NumberOfServings = 1,
+                            },
+                        }
+                    },
+                    new Meal
+                    {
+                        MealId = 3,
+                        Order = 1,
+                        EatenOn = new DateTime(2021, 12, 2),
+                        UserId = 1,
+                        FoodServings = new List<FoodServing>()
+                        {
+                            new FoodServing
+                            {
+                                FoodServingId = 4,
+                                FoodId = "W2222", //Fine Grained Oats
+                                MealId = 3,
+                                ServingUnit = "g",
+                                ServingSize = 60,
+                                NumberOfServings = 1,
+                            },
+                            new FoodServing
+                            {
+                                FoodServingId = 5,
+                                FoodId = "W4444", //Tomatoe
+                                MealId = 3,
+                                ServingUnit = "g",
+                                ServingSize = 200,
+                                NumberOfServings = 1,
+                            }
+                        }
+                    },
+                    new Meal
+                    {
+                        MealId = 4,
+                        Order = 2,
+                        EatenOn = new DateTime(2021, 12, 2),
+                        UserId = 1,
+                        FoodServings = new List<FoodServing>()
+                        {
+                            new FoodServing
+                            {
+                                FoodServingId = 6,
+                                FoodId = "W4444", //Tomatoe
+                                MealId = 1,
+                                ServingUnit = "g",
+                                ServingSize = 220,
+                                NumberOfServings = 1
+                            },
+                        }
+                    }
                 }
             },
             new User
@@ -237,7 +334,31 @@ namespace DietAssistant.UnitTests.Database
                                 PercentCarbs = x.Goal.NutritionGoal.PercentCarbs,
                                 ChangedOnUTC = x.Goal.NutritionGoal.ChangedOnUTC
                             }
-                        }
+                        },
+                    Meals = x.Meals == null
+                        ? null
+                        : x.Meals
+                            .Select(m => new Meal
+                            {
+                                MealId = m.MealId,
+                                Order = m.Order,
+                                EatenOn = m.EatenOn,
+                                UserId = m.UserId,
+                                FoodServings = m.FoodServings == null
+                                    ? null
+                                    : m.FoodServings
+                                        .Select(fs => new FoodServing
+                                        {
+                                            FoodServingId = fs.FoodServingId,
+                                            FoodId = fs.FoodId,
+                                            MealId = fs.MealId,
+                                            ServingUnit = fs.ServingUnit,
+                                            ServingSize = fs.ServingSize,
+                                            NumberOfServings = fs.NumberOfServings
+                                        })
+                                        .ToList()
+                            })
+                            .ToList()
                 })
                 .ToList();
 
