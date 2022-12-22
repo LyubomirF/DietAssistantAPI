@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 namespace DietAssistant.WebAPI.Extentions
 {
@@ -74,7 +75,12 @@ namespace DietAssistant.WebAPI.Extentions
                     Type = "string",
                     Example = new OpenApiString("00:00:00")
                 });
+
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
+
         }
 
         public static void AddJwtConfiguration(this IServiceCollection services, IConfiguration config)

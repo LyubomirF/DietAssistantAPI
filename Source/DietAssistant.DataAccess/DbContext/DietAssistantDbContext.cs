@@ -93,7 +93,6 @@ namespace DietAssistant.DataAccess
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-
             builder.Entity<DietPlan>(options =>
             {
                 options.HasKey(x => x.DietPlanId);
