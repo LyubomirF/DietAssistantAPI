@@ -52,7 +52,7 @@ namespace DietAssistant.Business.Validation
                 errors.Add("Unit is required.");
             }
 
-            if(request.NumberOfServings <= 0)
+            if (request.NumberOfServings <= 0)
             {
                 errors.Add("Number of servings cannot be less than or equal 0.");
             }
@@ -64,12 +64,12 @@ namespace DietAssistant.Business.Validation
         {
             errors = new List<String>();
 
-            if(!Validate(mealId, out String err))
+            if (!Validate(mealId, out String err))
             {
                 errors.Add(err);
             }
 
-            if(!Validate(request, out List<String> errs))
+            if (!Validate(request, out List<String> errs))
             {
                 errors.AddRange(errs);
             }
@@ -122,7 +122,6 @@ namespace DietAssistant.Business.Validation
         public static Boolean Validate(Int32 id, UpdateMealLogRequest request, out List<String> errors)
         {
             errors = new List<String>();
-
 
             if(!Validate(id, out String err))
             {

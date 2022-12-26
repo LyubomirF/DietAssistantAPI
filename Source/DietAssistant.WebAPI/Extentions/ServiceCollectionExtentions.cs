@@ -9,6 +9,8 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 
+#pragma warning disable
+
 namespace DietAssistant.WebAPI.Extentions
 {
     public static class ServiceCollectionExtentions
@@ -48,7 +50,15 @@ namespace DietAssistant.WebAPI.Extentions
         {
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "DietAssistant.WebAPI", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo 
+                { 
+                    Title = "DietAssistant.WebAPI",
+                    Version = "v1",
+                    Description = "OpenAPI schema of DietAssistant REST API",
+                    TermsOfService = new Uri("https://tos.com"),
+                    Contact = new OpenApiContact() { Email = "lubo99filipov@gmail.com", Name = "Lyubomir Filipov" },
+                    License = new OpenApiLicense() { Name = "License of API", Url = new Uri("https://license.com") }
+                });
                 c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, new OpenApiSecurityScheme
                 {
                     In = ParameterLocation.Header,
@@ -80,7 +90,6 @@ namespace DietAssistant.WebAPI.Extentions
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
-
         }
 
         public static void AddJwtConfiguration(this IServiceCollection services, IConfiguration config)

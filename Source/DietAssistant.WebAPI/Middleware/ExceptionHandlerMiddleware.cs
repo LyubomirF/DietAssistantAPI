@@ -2,6 +2,8 @@
 using Newtonsoft.Json;
 using System.Net;
 
+#pragma warning disable
+
 namespace DietAssistant.WebAPI.Middleware
 {
     public class ExceptionHandlerMiddleware
@@ -33,7 +35,6 @@ namespace DietAssistant.WebAPI.Middleware
                 Result.CreateWithError<object>(EvaluationTypes.Failed, exception.Message));
 
             context.Response.ContentType = "application/json";
-
             context.Response.StatusCode = statusCode;
 
             return context.Response.WriteAsync(result);

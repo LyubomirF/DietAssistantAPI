@@ -8,6 +8,8 @@ using DietAssistant.WebAPI.Extentions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+#pragma warning disable
+
 namespace DietAssistant.WebAPI.Controllers
 {
     using static DiaryRoutes;

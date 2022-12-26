@@ -1,5 +1,7 @@
 ﻿using System.Text;
 
+#pragma warning disable
+
 namespace DietAssistant.Business.Configuration
 {
     public class AuthConfiguration

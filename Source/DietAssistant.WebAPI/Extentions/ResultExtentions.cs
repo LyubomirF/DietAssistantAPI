@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
+#pragma warning disable
+
 namespace DietAssistant.WebAPI.Extentions
 {
     public static class ResultExtentions
@@ -16,7 +18,6 @@ namespace DietAssistant.WebAPI.Extentions
                 EvaluationTypes.Failed => controller.StatusCode((int)HttpStatusCode.InternalServerError, result),
                 _ => throw new NotSupportedException("Action is not supported")
             };
-
 
         public static async Task<IActionResult> ToActionResultAsync<T>(this Task<Result<T>> result, ControllerBase controller)
         {
