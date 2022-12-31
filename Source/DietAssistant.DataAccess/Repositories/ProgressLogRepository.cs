@@ -29,6 +29,8 @@ namespace DietAssistant.DataAccess.Repositories
             if (periodEnd.HasValue)
                 query = query.Where(x => x.LoggedOn <= periodEnd.Value);
 
+            query = query.OrderByDescending(x => x.LoggedOn);
+
             var totalCount = query.Count();
 
             var result = await query
