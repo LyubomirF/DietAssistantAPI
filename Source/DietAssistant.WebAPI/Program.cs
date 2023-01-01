@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.AddAppConfiguration();
 
 var configuration = builder.Configuration;
-
 var services = builder.Services;
 
 services.AddDbContext<DietAssistantDbContext>(options =>
