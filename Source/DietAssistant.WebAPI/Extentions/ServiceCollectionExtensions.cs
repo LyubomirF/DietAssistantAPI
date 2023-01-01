@@ -1,6 +1,7 @@
 ﻿using DietAssistant.Business;
 using DietAssistant.Business.Configuration;
 using DietAssistant.Business.Contracts;
+using DietAssistant.DataAccess;
 using DietAssistant.DataAccess.Contracts;
 using DietAssistant.DataAccess.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -13,7 +14,7 @@ using System.Reflection;
 
 namespace DietAssistant.WebAPI.Extentions
 {
-    public static class ServiceCollectionExtentions
+    public static class ServiceCollectionExtensions
     {
         public static void AddConfiguration(this IServiceCollection services, ConfigurationManager configuration)
         {
@@ -22,6 +23,8 @@ namespace DietAssistant.WebAPI.Extentions
 
             services.Configure<AuthConfiguration>(
                 configuration.GetSection(nameof(AuthConfiguration)));
+
+            services.AddScoped<IDatabaseInitializer, DatabaseInitializer>();
         }
 
         public static void AddServices(this IServiceCollection services)

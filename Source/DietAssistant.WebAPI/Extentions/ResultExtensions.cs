@@ -6,7 +6,7 @@ using System.Net;
 
 namespace DietAssistant.WebAPI.Extentions
 {
-    public static class ResultExtentions
+    public static class ResultExtensions
     {
         public static IActionResult ToActionResult<T>(this Result<T> result, ControllerBase controller)
             => result.EvaluationResult switch

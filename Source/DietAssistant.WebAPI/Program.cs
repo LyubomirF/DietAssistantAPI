@@ -1,4 +1,3 @@
-using DietAssistant.Business.Configuration;
 using DietAssistant.DataAccess;
 using DietAssistant.Domain;
 using DietAssistant.WebAPI.Extentions;
@@ -7,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 var configuration = builder.Configuration;
 
 var services = builder.Services;
@@ -30,10 +28,10 @@ services.AddCustomSwagger();
 services.AddJwtConfiguration(configuration);
 
 var app = builder.Build();
+await app.InitializeApplication();
 
 app.UseExceptionHandlerMiddleware();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
